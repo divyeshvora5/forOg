@@ -221,6 +221,7 @@ export default function handler(req) {
         {
             width: 1200,
             height: 630,
+            debug: true
         }
     );
 }
