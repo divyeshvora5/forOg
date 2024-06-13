@@ -48,12 +48,12 @@ export default function PageTitle({
 
             <meta name="description" content={description} />
             <meta property="og:type" content="website" />
-            <meta property="og:url"  content={`${FRONT_END_DOMAIN}/explore/collection/${id}`} />
+            <meta property="og:url"  content={FRONT_END_DOMAIN} />
             <meta property="og:title" content={title} />
             <meta property="og:description" content={description} />
             <meta property="og:image" content={imageURL} />
             <meta name="twitter:card" content="summary_large_image" />
-            <meta property="twitter:url"  content={`${FRONT_END_DOMAIN}/explore/collection/${id}`} />
+            <meta property="twitter:url"  content={FRONT_END_DOMAIN} />
             <meta property="twitter:title" content={title} />
             <meta property="twitter:description" content={description} />
             <meta property="twitter:image" content={imageURL} />
