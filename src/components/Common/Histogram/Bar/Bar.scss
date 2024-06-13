@@ -1,0 +1,86 @@
+.bar {
+    position: relative;
+    .tooltip .tooltipArrow {
+        bottom: 40px;
+    }
+    &:hover {
+        cursor: pointer;
+        .tooltip {
+            top: -57px;
+            opacity: 1;
+        }
+    }
+}
+
+.positiveBar {
+    transform: scaleY(0);
+    transform-origin: bottom;
+    animation-name: barExpand;
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+}
+
+.negativeBar {
+    transform: scaleY(0);
+    transform-origin: top;
+    animation-name: barExpand;
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+}
+
+@keyframes barExpand {
+    0% {
+        transform: scaleY(0);
+    }
+
+    100% {
+        transform: scaleY(1);
+    }
+}
+
+.tooltip {
+    width: max-content;
+    background-color: black;
+    color: white;
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+    font-size: 12px;
+    text-align: center;
+    top: -50px;
+    right: 5px;
+    transition: all 0.25s;
+    border-radius: 3px;
+    box-shadow: -3px 3px 3px 0 rgba(0, 0, 0, 0.4);
+    display: inline-block;
+    padding: 7px 15px;
+    p {
+        margin: 0;
+    }
+
+    .tooltipArrow {
+        position: absolute;
+        left: 100%;
+        margin: 0;
+        box-sizing: border-box;
+        box-shadow: 0px 3px 3px 0 rgba(0, 0, 0, 0.4);
+        z-index: 1;
+    }
+
+    .tooltipArrow::after {
+        content: "";
+        position: absolute;
+        top: 3em;
+        right: 0;
+        width: 20px;
+        height: 15px;
+        background-color: black;
+        box-sizing: border-box;
+        box-shadow: -3px 3px 3px 0 rgba(0, 0, 0, 0.4);
+        clip-path: polygon(0 0, 100% 100%, 100% 0);
+    }
+}

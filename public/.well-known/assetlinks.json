@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.tesseractx.beta.twa",
+        "sha256_cert_fingerprints": ["34:58:1D:EC:78:2F:1A:6E:7A:7F:15:F3:1C:82:FA:95:91:68:19:9E:CC:BE:04:89:92:85:9B:62:98:80:63:74"]
+      }
+    }]
