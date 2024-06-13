@@ -9,7 +9,7 @@ const BASE_TITLE = "TesseractX";
 export default function PageTitle({
     title = "TesseractX",
     description = "",
-    imageUrl="",
+    imageUrl = "",
     id = "",
     coverUrl = "",
 }) {
@@ -25,12 +25,12 @@ export default function PageTitle({
     )}`;
     console.log("🚀 ~ imageURL1:", imageURL)
 
-    
-    
+
+
 
     return (
         <Head>
-            <meta name="description" content={description} />
+            {/* <meta name="description" content={description} />
             <meta property="og:type" content="website" />
             <meta
                 property="og:url"
@@ -44,7 +44,19 @@ export default function PageTitle({
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:title" content={title} />
             <meta name="twitter:description" content={description} />
-            <meta name="twitter:image" content={imageURL} />
+            <meta name="twitter:image" content={imageURL} /> */}
+
+            <meta name="description" content={description} />
+            <meta property="og:type" content="website" />
+            <meta property="og:url"  content={`${FRONT_END_DOMAIN}/explore/collection/${id}`} />
+            <meta property="og:title" content={title} />
+            <meta property="og:description" content={description} />
+            <meta property="og:image" content={imageURL} />
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta property="twitter:url"  content={`${FRONT_END_DOMAIN}/explore/collection/${id}`} />
+            <meta property="twitter:title" content={title} />
+            <meta property="twitter:description" content={description} />
+            <meta property="twitter:image" content={imageURL} />
         </Head>
     );
 }
