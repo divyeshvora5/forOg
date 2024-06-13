@@ -7,15 +7,19 @@ export const config = {
 export default function handler(req) {
     const { searchParams } = new URL(req.url);
     // const DOMAIN = "https://meta-psi-five.vercel.app";
-    const hasTitle = searchParams.has("title");
-    const hasImageUrl = searchParams.has("imageUrl");
-    const title = hasTitle ? searchParams.get("title") : "#BITMATIC ART";
-    const imageUrl = hasImageUrl
-        ? searchParams.get("imageUrl")
-        : "https://hextoymedia.s3.us-east-1.amazonaws.com/collections/lows/86204875-32e0-4e58-a702-0f55a1befffa-1718267220803";
-    const coverUrl =
+    // const hasTitle = searchParams.has("title");
+    // const hasImageUrl = searchParams.has("imageUrl");
+    // const title = hasTitle ? searchParams.get("title") : "#BITMATIC ART";
+    // const imageUrl = hasImageUrl
+    //     ? searchParams.get("imageUrl")
+    //     : "https://hextoymedia.s3.us-east-1.amazonaws.com/collections/lows/86204875-32e0-4e58-a702-0f55a1befffa-1718267220803";
+    // const coverUrl =
         "https://hextoymedia.s3.us-east-1.amazonaws.com/collections/banners/273488de-5f34-4b2f-a621-d352d6e7a4f6-1718222813018";
     const logoUrl = "https://dev.tesseractx.com/images/logo-light.svg";
+
+    console.log('logoUrl', logoUrl);
+
+    console.log('searchParams', searchParams)
 
     return new ImageResponse(
         (
@@ -64,7 +68,7 @@ export default function handler(req) {
                         display: "flex",
                     }}
                 >
-                    <img src={logoUrl} width="400" />
+                    <img src={'https://hextoymedia.s3.us-east-1.amazonaws.com/collections/lows/86204875-32e0-4e58-a702-0f55a1befffa-1718267220803'} width="400" />
                 </div>
                 <div
                     style={{
@@ -91,7 +95,7 @@ export default function handler(req) {
                         }}
                     >
                         <img
-                            src={imageUrl}
+                            src={'https://hextoymedia.s3.us-east-1.amazonaws.com/collections/lows/86204875-32e0-4e58-a702-0f55a1befffa-1718267220803'}
                             alt="Hexagon Image"
                             width="125"
                             height="125"
@@ -101,7 +105,7 @@ export default function handler(req) {
                             }}
                         />
                     </div>
-                    {title}
+                    {'Test'}
                 </div>
 
                 <div
