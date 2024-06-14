@@ -17,7 +17,7 @@ import TopSeller from "@/components/Home/TopSeller/TopSeller";
 import { useRouter } from "next/router";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { ethers } from "ethers";
-import { NetworkParams, RPC_URLS } from "@/constant";
+import { FRONT_END_DOMAIN, NetworkParams, RPC_URLS } from "@/constant";
 import { fromWei } from "@/utils";
 
 import {
@@ -59,6 +59,9 @@ export default function Home() {
   //     );
   // }, [chainId, account]);
 
+  const imageURL = `${FRONT_END_DOMAIN}/api/og`
+  console.log("🚀 ~ imageURL1:", imageURL)
+
   return (
     <>
       <Head>
@@ -68,6 +71,17 @@ export default function Home() {
           content='TesseractX is the ultimate NFT marketplace on PulseChain, offering generous rewards. Buy, sell, and trade unique digital collectibles!'
         />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
+        <meta name="description" content={"description"} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={FRONT_END_DOMAIN} />
+        <meta property="og:title" content={"title"} />
+        <meta property="og:description" content={"description"} />
+        <meta property="og:image" content={imageURL} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content={FRONT_END_DOMAIN} />
+        <meta property="twitter:title" content={"title"} />
+        <meta property="twitter:description" content={"description"} />
+        <meta property="twitter:image" content={imageURL} />
       </Head>
 
       {/* <main className={styles.main nostyle}> */}
