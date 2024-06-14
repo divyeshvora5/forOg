@@ -10,6 +10,9 @@ export default function handler(req) {
     const imageUrl = searchParams.get("imageUrl") || "https://hextoymedia.s3.us-east-1.amazonaws.com/collections/lows/86204875-32e0-4e58-a702-0f55a1befffa-1718267220803";
     const coverUrl = "https://hextoymedia.s3.us-east-1.amazonaws.com/collections/banners/273488de-5f34-4b2f-a621-d352d6e7a4f6-1718222813018";
 
+    console.log('title', title);
+    console.log('imageUrl', imageUrl)
+
     return new ImageResponse(
         (
             <div style={{
