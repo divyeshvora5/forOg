@@ -29,7 +29,7 @@ import {
 import { EvervaultCard, Icon } from "../components/ui/evervault-card";
 import Blog from "@/components/Home/Blog/Blog";
 
-export default function Home() {
+export default function home() {
   const router = useRouter();
   const options = [
     { value: "chocolate", label: "Recently Listed" },
