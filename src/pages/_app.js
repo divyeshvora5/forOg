@@ -9,6 +9,7 @@ import { ThemeProvider } from "next-themes";
 import { useEffect } from "react";
 import Head from "next/head";
 import { FRONT_END_DOMAIN } from "@/constant";
+import App from "next/app";
 const WalletProvider = dynamic(() => import("../connection/WalletProvider"), {
 	ssr: false,
 });
@@ -18,7 +19,7 @@ const WalletProvider = dynamic(() => import("../connection/WalletProvider"), {
 // 	{ ssr: false }
 // );
 
-function App({ Component, pageProps }) {
+function MyApp({ Component, pageProps }) {
 
 
 	//for og data
@@ -81,9 +82,9 @@ function App({ Component, pageProps }) {
 	);
 }
 
-App.getInitialProps = async (appContext) => {
+MyApp.getInitialProps = async (appContext) => {
 	const appProps = await App.getInitialProps(appContext);
 	return { ...appProps };
 };
 
-export default App;
+export default MyApp;
