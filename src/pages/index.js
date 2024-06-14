@@ -8,6 +8,8 @@ const imageURL = `${FRONT_END_DOMAIN}/api/og?title=${encodeURIComponent(
 )}&description=${encodeURIComponent(
   'description'
 )}&imageUrl=${encodeURIComponent(imgUrl)}`;
+
+console.log('imageURL', imageURL)
 function HomePage() {
     return (
         <>
@@ -22,12 +24,12 @@ function HomePage() {
                 <meta property="og:url" content={FRONT_END_DOMAIN} />
                 <meta property="og:title" content="Your Title" />
                 <meta property="og:description" content="Your Description" />
-                <meta property="og:image" content={imageURL} />
+                <meta property="og:image" content={imgUrl} />
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta property="twitter:url" content={FRONT_END_DOMAIN} />
                 <meta property="twitter:title" content="Your Title" />
                 <meta property="twitter:description" content="Your Description" />
-                <meta property="twitter:image" content={imageURL} />
+                <meta property="twitter:image" content={imgUrl} />
             </Head>
             <div>
                 Your Content Here
