@@ -170,7 +170,7 @@ const CollectionDetailComponent = () => {
     const [tabIndex, setTabIndex] = useState(0);
     return (
         <>
-            <PageTitle
+            {/* <PageTitle
                 title={"#BITMATIC ART"}
                 imageUrl={
                     "https://d17ha18jyelis7.cloudfront.net/collections/originals/16395541-68bd-4f66-a581-6528fb9ffbf4-1705050528582"
@@ -179,7 +179,7 @@ const CollectionDetailComponent = () => {
                 coverUrl={
                     "https://d17ha18jyelis7.cloudfront.net/collections/banners/0f62c3d4-d350-43fc-8f80-451cba0dd6a8-1707459809309"
                 }
-            />
+            /> */}
             {!loading ? (
                 collectionDetails?.address ? (
                     <CommonPageBlockPad

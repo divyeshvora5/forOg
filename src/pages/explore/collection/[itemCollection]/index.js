@@ -1,4 +1,3 @@
-import PageTitle from "@/components/Common/PageTitle";
 import { PublicProfile } from "@/components/PublicProfile/PublicProfileProvider";
 import CollectionDetailComponent from "@/components/collectionDetail/CollectionDetailComponent";
 import { FRONT_END_DOMAIN } from "@/constant";
