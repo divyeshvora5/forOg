@@ -1,2 +1,2 @@
 User-Agent: *
-Allow: /api/*
+Allow: /api/og/*
