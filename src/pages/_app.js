@@ -8,7 +8,6 @@ import { IntercomProvider } from "react-use-intercom";
 import { ThemeProvider } from "next-themes";
 import { useEffect } from "react";
 import Head from "next/head";
-import { FRONT_END_DOMAIN } from "@/constant";
 import App from "next/app";
 const WalletProvider = dynamic(() => import("../connection/WalletProvider"), {
 	ssr: false,
@@ -20,14 +19,6 @@ const WalletProvider = dynamic(() => import("../connection/WalletProvider"), {
 // );
 
 function MyApp({ Component, pageProps }) {
-
-
-	//for og data
-	const ogData = pageProps?.ogData;
-
-
-
-
 	useEffect(() => {
 		if ("serviceWorker" in navigator) {
 			navigator.serviceWorker
@@ -44,27 +35,34 @@ function MyApp({ Component, pageProps }) {
 		}
 	}, []);
 
+	const ogData = pageProps?.ogData;
+
 
 	return (
 		<>
-			<Head>
-				<title>TesseractX</title>
-				<meta
-					name="description"
-					content="TesseractX is the ultimate NFT marketplace on PulseChain, offering generous rewards. Buy, sell, and trade unique digital collectibles!"
-				/>
-				<meta name="viewport" content="width=device-width, initial-scale=1" />
-				<meta property="og:type" content="website" />
-				<meta property="og:url" content={ogData?.url} />
-				<meta property="og:title" content="Your Title" />
-				<meta property="og:description" content="Your Description" />
-				<meta property="og:image" content={ogData?.imgUrl} />
-				<meta name="twitter:card" content="summary_large_image" />
-				<meta property="twitter:url" content={ogData?.url} />
-				<meta property="twitter:title" content="Your Title" />
-				<meta property="twitter:description" content="Your Description" />
-				<meta property="twitter:image" content={ogData?.imgUrl} />
-			</Head>
+
+			{ogData &&
+				<Head>
+					<title>TesseractX</title>
+					<meta
+						name="description"
+						content="TesseractX is the ultimate NFT marketplace on PulseChain, offering generous rewards. Buy, sell, and trade unique digital collectibles!"
+					/>
+					<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+					<meta property="og:type" content="website" />
+					<meta property="og:url" content={ogData?.url} />
+					<meta property="og:title" content={ogData?.title} />
+					<meta property="og:description" content="TesseractX is the ultimate NFT marketplace on PulseChain, offering generous rewards. Buy, sell, and trade unique digital collectibles!" />
+					<meta property="og:image" content={ogData?.imgUrl} />
+
+					<meta name="twitter:card" content="summary_large_image" />
+					<meta property="twitter:url" content={ogData?.url} />
+					<meta property="twitter:title" content={ogData?.title} />
+					<meta property="twitter:description" content="TesseractX is the ultimate NFT marketplace on PulseChain, offering generous rewards. Buy, sell, and trade unique digital collectibles!" />
+					<meta property="twitter:image" content={ogData?.imgUrl} />
+				</Head>
+			}
 			<WalletProvider >
 				<ThemeProvider attribute="class">
 					<Provider store={store}>
