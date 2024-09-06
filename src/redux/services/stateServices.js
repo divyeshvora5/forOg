@@ -23,3 +23,15 @@ export const getPopularCollectionService = async (params) => {
 		params: params,
 	});
 };
+
+export const getTrendingCollectionsService = async (params) => {
+	return await Axios.get("collection/trending-collection", {
+		params: params,
+	});
+};
+
+export const getTopCollectorsFeedService = async (params) => {
+	return await Axios.get("state/top-collectors-feed", {
+		params: params,
+	});
+};

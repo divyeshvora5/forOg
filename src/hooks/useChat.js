@@ -1,4 +1,7 @@
-import { globalState } from "@/redux/reducer/globalSlice";
+import {
+    globalState,
+    setUnreadMessageCount,
+} from "@/redux/reducer/globalSlice";
 import {
     getConversationServices,
     getUserChatsServices,
@@ -34,11 +37,12 @@ const STATE = {
     SETNEWCHAT: "SETNEWCHAT",
 };
 
-export const useChat = () => {
+export const useChat = ({ fetchMessages = false }) => {
     const {
         walletDetalis: { account },
         socket,
     } = useSelector(globalState);
+    const DISPATCH = useDispatch();
     const initialState = {
         // userChats states
         search: "",
@@ -340,12 +344,16 @@ export const useChat = () => {
         if (!state.userChats.length) return;
         let totalUnreadMessages = 0;
         state.userChats.forEach((message) => {
-            totalUnreadMessages += message.unreadMessageCount;
+            totalUnreadMessages =
+                totalUnreadMessages + message.unreadMessageCount;
         });
         dispatch({
             type: STATE.SETUNREADMESSAGESCOUNT,
-            payload: totalUnreadMessages,
+            payload: totalUnreadMessages || 0,
         });
+        DISPATCH(
+            setUnreadMessageCount({ unreadMessageCount: totalUnreadMessages })
+        );
     }, [state.userChats]);
 
     const getUserChats = async () => {
@@ -440,6 +448,7 @@ export const useChat = () => {
     };
 
     useEffect(() => {
+        if (!fetchMessages) return;
         getConversation();
     }, [state.state]);
 
@@ -492,6 +501,13 @@ export const useChat = () => {
             console.log("error", error);
         }
     };
+
+    useEffect(() => {
+        console.log("🚀 ~ chatPage ~ unreadMessages:", {
+            unreadMessages: state.unreadMessages,
+            fetchMessages,
+        });
+    }, [state.unreadMessages, fetchMessages]);
 
     const handleInputMessage = (e) => {
         let { value } = e.target;

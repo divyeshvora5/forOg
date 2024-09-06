@@ -9,6 +9,7 @@ import {
     addUserFCMkeys,
     updateNotificationPreference,
     UpdateEmail,
+    deleteUserAction,
 } from "@/redux/actions/globalAction";
 import {
     globalState,
@@ -41,6 +42,7 @@ const STATE = {
     PAGECHANGE: "PAGECHANGE",
     STOREDATA: "STOREDATA",
     STARTLOADING: "STARTLOADING",
+    STOPLOADING: "STOPLOADING",
     QUERYCHANGE: "QUERYCHANGE",
     ATTIBUTESELECT: "ATTIBUTESELECT",
     LIMITCHANGE: "LIMITCHANGE",
@@ -55,9 +57,11 @@ export const useEditUser = () => {
     const [nameLoading, setNameLoading] = useState(false);
     const [selectedDomain, setSelectedDomain] = useState("");
     const [unique, setUnique] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
 
     const initialValues = {
         name: "",
+        fullName: "",
         email: "",
         profilePic: "",
         bannerPic: "",
@@ -96,13 +100,18 @@ export const useEditUser = () => {
         initialValues: initialValues,
         validationSchema: validationSchema,
         onSubmit: async (values, helpers) => {
-            dispatch(
-                updateUserAction({
-                    payload: values,
-                    signMessage: signMessage,
-                    fileRatio,
-                })
-            );
+            setIsUpdating(true);
+            try {
+                await dispatch(
+                    updateUserAction({
+                        payload: values,
+                        signMessage: signMessage,
+                        fileRatio,
+                    })
+                );
+            } finally {
+                setIsUpdating(false);
+            }
         },
         validateOnChange: true,
     });
@@ -112,6 +121,7 @@ export const useEditUser = () => {
         formik?.setValues((prevValues) => ({
             ...prevValues,
             name: formik.values?.name || userDetails?.name,
+            fullName: formik.values?.fullName || userDetails?.fullName,
             email: formik.values?.email || userDetails?.email,
             bio: formik.values?.bio || userDetails?.bio,
             instagram: formik.values?.instagram || userDetails?.instagram,
@@ -284,11 +294,34 @@ export const useEditUser = () => {
         updateNotification,
         nameLoading,
         unique,
+        isUpdating,
         // profilePic,
         // bannerPic,
         handleFileChange,
         // handleCheckBox,
         handleRadioChange,
+    };
+};
+
+export const useDeleteUser = () => {
+    const { account, deactivate, signMessage } = useActiveWeb3React();
+    const dispatch = useDispatch();
+
+    const deleteAccount = async () => {
+        try {
+            await dispatch(
+                deleteUserAction({
+                    payload: { account: account?.toLowerCase() },
+                    signMessage: signMessage,
+                })
+            );
+            deactivate();
+        } catch (error) {
+            console.error("Error deleting account:", error);
+        }
+    };
+    return {
+        deleteAccount,
     };
 };
 
@@ -412,6 +445,12 @@ export const useHistoryItems = () => {
                     state: null,
                     loading: true,
                 };
+            case STATE.STOPLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: false,
+                };
             case STATE.STOREDATA:
                 return {
                     ...state,
@@ -442,16 +481,23 @@ export const useHistoryItems = () => {
             limit: state.limit,
             chainId: chainId,
         };
-        const { data } = await getEventsServices(query);
-        dispatch({
-            type: STATE.STOREDATA,
-            payload: {
-                items: data.data,
-                count: data.count,
-                totalPages: data.totalPages,
-                page: data.page,
-            },
-        });
+        try {
+            const { data } = await getEventsServices(query);
+            dispatch({
+                type: STATE.STOREDATA,
+                payload: {
+                    items: data?.data,
+                    count: data?.count,
+                    totalPages: data?.totalPages,
+                    page: data?.page,
+                },
+            });
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            dispatch({
+                type: STATE.STOPLOADING,
+            });
+        }
     };
 
     useEffect(() => {
@@ -551,11 +597,28 @@ export const useFollowingItems = () => {
                         chainId,
                     },
                 };
+            case STATE.SEARCH:
+                return {
+                    ...state,
+                    state: STATE.SEARCH,
+                    page: 1,
+                    events: [],
+                    payload: {
+                        ...state.payload,
+                        search: payload,
+                    },
+                };
             case STATE.STARTLOADING:
                 return {
                     ...state,
                     state: null,
                     loading: true,
+                };
+            case STATE.STOPLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: false,
                 };
             case STATE.STOREDATA:
                 return {
@@ -587,16 +650,24 @@ export const useFollowingItems = () => {
             limit: state.limit,
             chainId: chainId,
         };
-        const { data } = await getFollowService(query);
-        dispatch({
-            type: STATE.STOREDATA,
-            payload: {
-                items: data.data,
-                count: data.count,
-                totalPages: data.totalPages,
-                page: data.page,
-            },
-        });
+        try {
+            const { data } = await getFollowService(query);
+
+            dispatch({
+                type: STATE.STOREDATA,
+                payload: {
+                    items: data?.data,
+                    count: data?.count,
+                    totalPages: data?.totalPages,
+                    page: data?.page,
+                },
+            });
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            dispatch({
+                type: STATE.STOPLOADING,
+            });
+        }
     };
 
     useEffect(() => {
@@ -608,7 +679,17 @@ export const useFollowingItems = () => {
 
     useEffect(() => {
         if (!account) return;
-        getData();
+        let timer;
+
+        if (state.state === STATE.SEARCH) {
+            timer = setTimeout(() => {
+                getData();
+            }, 800);
+        } else {
+            getData();
+        }
+
+        return () => clearTimeout(timer);
     }, [state]);
 
     const handlePageChange = () => {
@@ -616,10 +697,17 @@ export const useFollowingItems = () => {
             type: STATE.PAGECHANGE,
         });
     };
+    const handleSearch = (e) => {
+        dispatch({
+            type: STATE.SEARCH,
+            payload: e.target.value,
+        });
+    };
 
     return {
         ...state,
         handlePageChange,
+        handleSearch,
     };
 };
 
@@ -713,6 +801,12 @@ export const useFavoriteItems = () => {
                     state: null,
                     loading: true,
                 };
+            case STATE.STOPLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: false,
+                };
             case STATE.STOREDATA:
                 return {
                     ...state,
@@ -743,16 +837,24 @@ export const useFavoriteItems = () => {
             limit: state.limit,
             chainId: chainId,
         };
-        const { data } = await getFavoriteItemsService(query);
-        dispatch({
-            type: STATE.STOREDATA,
-            payload: {
-                items: data.data,
-                count: data.count,
-                totalPages: data.totalPages,
-                page: data.page,
-            },
-        });
+        try {
+            const { data } = await getFavoriteItemsService(query);
+
+            dispatch({
+                type: STATE.STOREDATA,
+                payload: {
+                    items: data?.data,
+                    count: data?.count,
+                    totalPages: data?.totalPages,
+                    page: data?.page,
+                },
+            });
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            dispatch({
+                type: STATE.STOPLOADING,
+            });
+        }
     };
 
     useEffect(() => {
@@ -860,6 +962,12 @@ export const useUserCollections = () => {
                     state: null,
                     loading: true,
                 };
+            case STATE.STOPLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: false,
+                };
             case STATE.STOREDATA:
                 return {
                     ...state,
@@ -890,16 +998,24 @@ export const useUserCollections = () => {
             limit: state.limit,
             chainId: chainId,
         };
-        const { data } = await getUsersCollectionsService(query);
-        dispatch({
-            type: STATE.STOREDATA,
-            payload: {
-                items: data.data,
-                count: data.count,
-                totalPages: data.totalPages,
-                page: data.page,
-            },
-        });
+        try {
+            const { data } = await getUsersCollectionsService(query);
+
+            dispatch({
+                type: STATE.STOREDATA,
+                payload: {
+                    items: data?.data,
+                    count: data?.count,
+                    totalPages: data?.totalPages,
+                    page: data?.page,
+                },
+            });
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            dispatch({
+                type: STATE.STOPLOADING,
+            });
+        }
     };
 
     useEffect(() => {
@@ -921,9 +1037,9 @@ export const useUserCollections = () => {
         });
     };
 
-    const handleRouteChange = (address) => {
+    const handleRouteChange = (address, chainId) => {
         if (!address) return;
-        router.push(PATH_DASHBOARD.explore.collection(address));
+        router.push(PATH_DASHBOARD.explore.collection(address, chainId));
     };
 
     const handleLimitChange = (limitValue) => {
@@ -1017,6 +1133,12 @@ export const useInventory = () => {
                     state: null,
                     loading: true,
                 };
+            case STATE.STOPLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: false,
+                };
             case STATE.STOREDATA:
                 return {
                     ...state,
@@ -1047,16 +1169,23 @@ export const useInventory = () => {
             limit: state.limit,
             chainId: chainId,
         };
-        const { data } = await getUserInventoryService(query);
-        dispatch({
-            type: STATE.STOREDATA,
-            payload: {
-                items: data.data,
-                count: data.count,
-                totalPages: data.totalPages,
-                page: data.page,
-            },
-        });
+        try {
+            const { data } = await getUserInventoryService(query);
+            dispatch({
+                type: STATE.STOREDATA,
+                payload: {
+                    items: data?.data,
+                    count: data?.count,
+                    totalPages: data?.totalPages,
+                    page: data?.page,
+                },
+            });
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            dispatch({
+                type: STATE.STOPLOADING,
+            });
+        }
     };
 
     useEffect(() => {

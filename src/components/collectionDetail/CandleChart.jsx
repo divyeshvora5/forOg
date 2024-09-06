@@ -7,7 +7,7 @@ import HighchartsReact from "highcharts-react-official";
 HighchartsMore(Highcharts);
 HighchartsStock(Highcharts);
 
-const CandleChart = ({ data = [], loading = false }) => {
+const CandleChart = ({ data = [], loading = false, collectionName = "" }) => {
     const [chartData, setChartData] = useState([]);
     useEffect(() => {
         if (!data.length) return;
@@ -57,7 +57,7 @@ const CandleChart = ({ data = [], loading = false }) => {
         series: [
             {
                 type: "candlestick",
-                name: "AAPL Stock Price",
+                name: `${collectionName} Floor Price`,
                 data: loading ? [] : chartData,
                 // dataGrouping: {
                 //     units: [

@@ -9,7 +9,12 @@ import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import Accordion from "react-bootstrap/Accordion";
 import { useOwnerDetails, useUserDetails } from "@/hooks/useFetchHooks";
-import { CountParser, getEnsDetails, shortenText } from "@/utils";
+import {
+    copyToClipboard,
+    CountParser,
+    getEnsDetails,
+    shortenText,
+} from "@/utils";
 import { useSelector } from "react-redux";
 import { globalState } from "@/redux/reducer/globalSlice";
 import { useActiveWeb3React } from "@/hooks/useActiveWeb3React";
@@ -136,13 +141,33 @@ const PublicProfileComponent = () => {
         if (!address) return;
         push(PATH_DASHBOARD.chat.user(address));
     };
+
+    const getUsernameFromUrl = (url, segmentNumber = 0) => {
+        try {
+            const urlObj = new URL(url);
+            const pathname = urlObj.pathname;
+            const segments = pathname.split("/").filter(Boolean);
+            return segments.length > segmentNumber
+                ? segments[segmentNumber]
+                : null;
+        } catch (error) {
+            console.error("Invalid URL:", error);
+            return null;
+        }
+    };
     return (
         <>
             <PageTitle
-                title={`${profileName ? `${profileName} - ` : ""}User Detail`}
+                title={`${
+                    profileName
+                        ? `${profileName} - `
+                        : ownerDetails?.name
+                        ? `${ownerDetails?.name} - `
+                        : ""
+                }Profile`}
             />
             {ownerLoading ? (
-                <div className="d-flex justify-content-center align-items-center vh-100">
+                <div className="d-flex justify-content-center align-items-center  vh-100">
                     <Spinner animation="border" size="lg" />
                 </div>
             ) : !ownerDetails?.address ? (
@@ -150,7 +175,7 @@ const PublicProfileComponent = () => {
                     {/* No User Details Found */}
                 </div>
             ) : (
-                <CommonPageBlockPad className="no-container-padding public-profile-page">
+                <CommonPageBlockPad className="no-container-padding dark-mode-body public-profile-page">
                     <div className="graphics-inner-shape">
                         {/* <img
                             src={"../../images/graphics-block-inner.png"}
@@ -171,11 +196,7 @@ const PublicProfileComponent = () => {
                     </div>
                     <div className="public-progile-main">
                         <div
-                            className={`top-banner-img ${
-                                ownerDetails?.bannerUrl
-                                    ? "vertically-fade-banner"
-                                    : ""
-                            }`}
+                            className={`top-banner-img vertically-fade-banner`}
                         >
                             <img
                                 src={
@@ -194,8 +215,7 @@ const PublicProfileComponent = () => {
                                             <div className="profile-inner-flex-left-img">
                                                 <ImageLoader
                                                     src={
-                                                        ownerDetails?.mediumLogo ||
-                                                        "../../images/item-details.png"
+                                                        ownerDetails?.mediumLogo
                                                     }
                                                     alt="item-img"
                                                     mediaRenderer={false}
@@ -204,7 +224,8 @@ const PublicProfileComponent = () => {
                                             <div className="text-name-block">
                                                 <div className="text-name-block-name">
                                                     <h2>
-                                                        {profileName ||
+                                                        {ownerDetails?.domainName ||
+                                                            profileName ||
                                                             ownerDetails?.name ||
                                                             ""}
                                                     </h2>
@@ -217,10 +238,87 @@ const PublicProfileComponent = () => {
                                                             xmlns="http://www.w3.org/2000/svg"
                                                         >
                                                             <path
-                                                                d="M18.3496 5.68686C18.3452 5.58153 18.3143 5.47903 18.2596 5.38887C18.205 5.29872 18.1285 5.22385 18.0371 5.17123L10.3121 0.708734C10.2171 0.653879 10.1093 0.625 9.99961 0.625C9.8899 0.625 9.78212 0.653879 9.68711 0.708734L1.95898 5.17123C1.86407 5.22603 1.78523 5.30483 1.73038 5.39972C1.67553 5.49461 1.6466 5.60226 1.64648 5.71186V14.2869C1.6466 14.3965 1.67553 14.5041 1.73038 14.599C1.78523 14.6939 1.86407 14.7727 1.95898 14.8275L9.68711 19.29C9.78271 19.3431 9.89026 19.3709 9.99961 19.3709C10.109 19.3709 10.2165 19.3431 10.3121 19.29L18.0402 14.8275C18.1352 14.7727 18.214 14.6939 18.2688 14.599C18.3237 14.5041 18.3526 14.3965 18.3527 14.2869C18.3496 14.2619 18.359 5.70873 18.3496 5.68686ZM9.99961 1.97123L16.4777 5.72123L9.99961 9.45248L3.52148 5.70248L9.99961 1.97123ZM2.89648 6.79311L9.37461 10.5337V17.6681L2.89648 13.9181V6.79311ZM10.6246 17.6681V10.5337L17.1027 6.78373V13.9275L10.6246 17.6681Z"
-                                                                fill="white"
+                                                                d="M5.556 6.36435C5.46694 7.31435 5.40444 8.9956 5.96538 9.71123C5.96538 9.71123 5.70132 7.86435 8.0685 5.54716C9.02163 4.61435 9.24194 3.3456 8.90913 2.39404C8.72007 1.85498 8.37475 1.40966 8.07475 1.09873C7.89975 0.915914 8.03413 0.614352 8.28882 0.625289C9.82944 0.694039 12.3263 1.12216 13.3873 3.78466C13.8529 4.95341 13.8873 6.16123 13.6654 7.38935C13.5248 8.17373 13.0248 9.91748 14.1654 10.1315C14.9794 10.2847 15.3732 9.63779 15.5498 9.17216C15.6232 8.97841 15.8779 8.92998 16.0154 9.08466C17.3904 10.6487 17.5076 12.4909 17.2232 14.0768C16.6732 17.1425 13.5685 19.3737 10.4841 19.3737C6.631 19.3737 3.56381 17.169 2.7685 13.1784C2.44819 11.5675 2.61069 8.37998 5.09507 6.12998C5.27944 5.96123 5.581 6.11123 5.556 6.36435Z"
+                                                                fill="url(#paint0_radial_10075_13072)"
                                                             />
+                                                            <path
+                                                                d="M11.8923 12.0975C10.472 10.2694 11.1079 8.18347 11.4564 7.35222C11.5032 7.24285 11.3782 7.13972 11.2798 7.20691C10.6689 7.62253 9.41729 8.60066 8.83448 9.97722C8.04542 11.8382 8.10167 12.7491 8.56886 13.8616C8.85011 14.5319 8.52354 14.6741 8.35948 14.6991C8.20011 14.7241 8.05323 14.6178 7.93604 14.5069C7.59892 14.1832 7.35868 13.772 7.24229 13.3194C7.21729 13.2225 7.09073 13.196 7.03292 13.2757C6.59542 13.8803 6.36886 14.8507 6.35792 15.5366C6.32354 17.6569 8.07511 19.3757 10.1939 19.3757C12.8642 19.3757 14.8095 16.4225 13.2751 13.9538C12.8298 13.235 12.411 12.7647 11.8923 12.0975Z"
+                                                                fill="url(#paint1_radial_10075_13072)"
+                                                            />
+                                                            <defs>
+                                                                <radialGradient
+                                                                    id="paint0_radial_10075_13072"
+                                                                    cx="0"
+                                                                    cy="0"
+                                                                    r="1"
+                                                                    gradientUnits="userSpaceOnUse"
+                                                                    gradientTransform="translate(9.72097 19.4223) rotate(-179.751) scale(11.0293 18.0969)"
+                                                                >
+                                                                    <stop
+                                                                        offset="0.314"
+                                                                        stop-color="#FF9800"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.662"
+                                                                        stop-color="#FF6D00"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.972"
+                                                                        stop-color="#F44336"
+                                                                    />
+                                                                </radialGradient>
+                                                                <radialGradient
+                                                                    id="paint1_radial_10075_13072"
+                                                                    cx="0"
+                                                                    cy="0"
+                                                                    r="1"
+                                                                    gradientUnits="userSpaceOnUse"
+                                                                    gradientTransform="translate(10.3407 8.44728) rotate(90.5787) scale(11.5401 8.68476)"
+                                                                >
+                                                                    <stop
+                                                                        offset="0.214"
+                                                                        stop-color="#FFF176"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.328"
+                                                                        stop-color="#FFF27D"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.487"
+                                                                        stop-color="#FFF48F"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.672"
+                                                                        stop-color="#FFF7AD"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.793"
+                                                                        stop-color="#FFF9C4"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.822"
+                                                                        stop-color="#FFF8BD"
+                                                                        stop-opacity="0.804"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.863"
+                                                                        stop-color="#FFF6AB"
+                                                                        stop-opacity="0.529"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.91"
+                                                                        stop-color="#FFF38D"
+                                                                        stop-opacity="0.209"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.941"
+                                                                        stop-color="#FFF176"
+                                                                        stop-opacity="0"
+                                                                    />
+                                                                </radialGradient>
+                                                            </defs>
                                                         </svg>
+
                                                         <span>
                                                             {CountParser(
                                                                 ownerDetails?.rewardPoint ||
@@ -230,7 +328,13 @@ const PublicProfileComponent = () => {
                                                     </p>
                                                 </div>
                                                 <div className="link-text-block">
-                                                    <Link href="#">
+                                                    <button
+                                                        onClick={() =>
+                                                            copyToClipboard(
+                                                                ownerDetails?.address
+                                                            )
+                                                        }
+                                                    >
                                                         <span>
                                                             {ownerDetails?.address
                                                                 ? shortenText(
@@ -241,6 +345,28 @@ const PublicProfileComponent = () => {
                                                                 : ""}
                                                         </span>
                                                         <svg
+                                                            width="15"
+                                                            height="16"
+                                                            viewBox="0 0 15 16"
+                                                            fill="none"
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                        >
+                                                            <path
+                                                                d="M4.16669 6.33464C4.16669 5.89261 4.34228 5.46869 4.65484 5.15612C4.9674 4.84356 5.39133 4.66797 5.83335 4.66797H12.5C12.942 4.66797 13.366 4.84356 13.6785 5.15612C13.9911 5.46869 14.1667 5.89261 14.1667 6.33464V13.0013C14.1667 13.4433 13.9911 13.8673 13.6785 14.1798C13.366 14.4924 12.942 14.668 12.5 14.668H5.83335C5.39133 14.668 4.9674 14.4924 4.65484 14.1798C4.34228 13.8673 4.16669 13.4433 4.16669 13.0013V6.33464Z"
+                                                                stroke="#FB4EF1"
+                                                                stroke-width="1.66667"
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                            />
+                                                            <path
+                                                                d="M10.8334 4.66732V3.00065C10.8334 2.55862 10.6578 2.1347 10.3452 1.82214C10.0327 1.50958 9.60873 1.33398 9.16671 1.33398H2.50004C2.05801 1.33398 1.63409 1.50958 1.32153 1.82214C1.00897 2.1347 0.833374 2.55862 0.833374 3.00065V9.66732C0.833374 10.1093 1.00897 10.5333 1.32153 10.8458C1.63409 11.1584 2.05801 11.334 2.50004 11.334H4.16671"
+                                                                stroke="#FB4EF1"
+                                                                stroke-width="1.66667"
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                            />
+                                                        </svg>
+                                                        {/* <svg
                                                             width="20"
                                                             height="20"
                                                             viewBox="0 0 20 20"
@@ -251,8 +377,8 @@ const PublicProfileComponent = () => {
                                                                 d="M4.16667 17.5C3.70833 17.5 3.31611 17.3369 2.99 17.0108C2.66389 16.6847 2.50056 16.2922 2.5 15.8333V4.16667C2.5 3.70833 2.66333 3.31611 2.99 2.99C3.31667 2.66389 3.70889 2.50056 4.16667 2.5H10V4.16667H4.16667V15.8333H15.8333V10H17.5V15.8333C17.5 16.2917 17.3369 16.6842 17.0108 17.0108C16.6847 17.3375 16.2922 17.5006 15.8333 17.5H4.16667ZM8.08333 13.0833L6.91667 11.9167L14.6667 4.16667H11.6667V2.5H17.5V8.33333H15.8333V5.33333L8.08333 13.0833Z"
                                                                 fill="#FB4EF1"
                                                             />
-                                                        </svg>
-                                                    </Link>
+                                                        </svg> */}
+                                                    </button>
                                                 </div>
                                             </div>
                                             <div className="social-link">
@@ -285,7 +411,9 @@ const PublicProfileComponent = () => {
                                                                     />
                                                                 </svg>
                                                                 <span>
-                                                                    Twitter
+                                                                    {getUsernameFromUrl(
+                                                                        ownerDetails?.twitter
+                                                                    )}
                                                                 </span>
                                                             </Link>
                                                         </li>
@@ -357,7 +485,9 @@ const PublicProfileComponent = () => {
                                                                 </svg>
 
                                                                 <span>
-                                                                    Telegram
+                                                                    {getUsernameFromUrl(
+                                                                        ownerDetails?.telegram
+                                                                    )}
                                                                 </span>
                                                             </Link>
                                                         </li>
@@ -384,7 +514,10 @@ const PublicProfileComponent = () => {
                                                                 </svg>
 
                                                                 <span>
-                                                                    Discord
+                                                                    {getUsernameFromUrl(
+                                                                        ownerDetails?.discord,
+                                                                        1
+                                                                    )}
                                                                 </span>
                                                             </Link>
                                                         </li>
@@ -646,10 +779,34 @@ const PublicProfileComponent = () => {
                                         onSelect={(index) => setTabIndex(index)}
                                     >
                                         <TabList>
-                                            <Tab>Owned</Tab>
-                                            <Tab>Activity</Tab>
-                                            <Tab>Offers</Tab>
-                                            <Tab>Created</Tab>
+                                            <Tab
+                                                style={{
+                                                    cursor: "pointer",
+                                                }}
+                                            >
+                                                Owned
+                                            </Tab>
+                                            <Tab
+                                                style={{
+                                                    cursor: "pointer",
+                                                }}
+                                            >
+                                                Activity
+                                            </Tab>
+                                            <Tab
+                                                style={{
+                                                    cursor: "pointer",
+                                                }}
+                                            >
+                                                Offers
+                                            </Tab>
+                                            <Tab
+                                                style={{
+                                                    cursor: "pointer",
+                                                }}
+                                            >
+                                                Created
+                                            </Tab>
                                         </TabList>
                                     </Tabs>
                                 </div>

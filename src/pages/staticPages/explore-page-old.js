@@ -27,7 +27,7 @@ const profilepage = () => {
         <CommonPageBlockPad>
             <Container>
                 <div className="common-title-page">
-                    <h1>Explore Items</h1>
+                    <h1>Explore Collectibles</h1>
                 </div>
                 <div className="tab-filter-main-block">
                     <div className="tab-filter-main-block-inner">

@@ -12,7 +12,9 @@ import {
     itemLikeAction,
     updateUserAction,
     updateNotificationPreference,
-    UpdateEmail
+    UpdateEmail,
+    collectionVoteAction,
+    deleteUserAction,
 } from "../actions/globalAction";
 import { getStorageData, saveStorageData } from "@/utils";
 import { STORAGE_KEYS, THEME_MODES } from "@/constant";
@@ -26,22 +28,25 @@ const initialState = {
     tokens: [],
     blogTags: [],
     userDetails: null,
+    userLoading: false,
     recentLikedItem: {},
     recentFollowItem: {},
-    themeMode: getStorageData(STORAGE_KEYS.THEME_MODE) || "light-theme",
+    recentBoostItem: {},
+    themeMode: getStorageData(STORAGE_KEYS.THEME_MODE) || "light-Theme",
     walletDetalis: {
         chainId: null,
         account: null,
         status: null,
     },
     walletBalance: {
-        943: { loading: true },
-        84532: { loading: true },
-        11155111: { loading: true },
-        8453: { loading: true },
-        1: { loading: true },
+        // 943: { loading: true },
+        // 84532: { loading: true },
+        // 11155111: { loading: true },
         369: { loading: true },
+        1: { loading: true },
+        8453: { loading: true },
     },
+    unreadMessageCount: 0,
 };
 
 const globalSlice = createSlice({
@@ -68,6 +73,12 @@ const globalSlice = createSlice({
                 state.userDetails.bannerUrl = payload.bannerUrl;
             }
         },
+        setUserRedeemPoint: (state, { payload }) => {
+            if (state.userDetails) {
+                state.userDetails.redeemPoints =
+                    (state.userDetails.redeemPoints || 0) + payload.points;
+            }
+        },
         toggleThemeMode: (state, { payload }) => {
             if (payload.themeMode) {
                 saveStorageData(STORAGE_KEYS.THEME_MODE, payload.themeMode);
@@ -76,6 +87,9 @@ const globalSlice = createSlice({
         },
         setSocket: (state, { payload }) => {
             state.socket = payload;
+        },
+        setUnreadMessageCount: (state, { payload }) => {
+            state.unreadMessageCount = payload.unreadMessageCount;
         },
     },
     extraReducers: (builder) => {
@@ -147,13 +161,16 @@ const globalSlice = createSlice({
             })
             .addCase(getUserAction.pending, (state) => {
                 state.loading = true;
+                state.userLoading = true;
             })
             .addCase(getUserAction.fulfilled, (state, { payload }) => {
                 state.userDetails = payload;
                 state.loading = false;
+                state.userLoading = false;
             })
             .addCase(getUserAction.rejected, (state, { payload }) => {
                 state.loading = false;
+                state.userLoading = false;
                 state.error = payload;
             })
             .addCase(itemLikeAction.pending, (state) => {
@@ -178,6 +195,17 @@ const globalSlice = createSlice({
                 state.loading = false;
                 state.error = payload;
             })
+            .addCase(collectionVoteAction.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(collectionVoteAction.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.recentBoostItem = payload;
+            })
+            .addCase(collectionVoteAction.rejected, (state, { payload }) => {
+                state.loading = false;
+                state.error = payload;
+            })
             .addCase(followAction.pending, (state) => {
                 state.loading = true;
             })
@@ -199,6 +227,16 @@ const globalSlice = createSlice({
                 state.loading = false;
                 state.error = payload;
             })
+            .addCase(deleteUserAction.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(deleteUserAction.fulfilled, (state, { payload }) => {
+                state.loading = false;
+            })
+            .addCase(deleteUserAction.rejected, (state, { payload }) => {
+                state.loading = false;
+                state.error = payload;
+            })
             .addCase(createContactus.pending, (state) => {
                 // contact us page
                 state.loading = true;
@@ -217,10 +255,14 @@ const globalSlice = createSlice({
             .addCase(updateNotificationPreference.fulfilled, (state) => {
                 state.loading = false;
             })
-            .addCase(updateNotificationPreference.rejected, (state, { payload }) => {
-                state.loading = false;
-                state.error = payload;
-            }).addCase(UpdateEmail.pending, (state) => {
+            .addCase(
+                updateNotificationPreference.rejected,
+                (state, { payload }) => {
+                    state.loading = false;
+                    state.error = payload;
+                }
+            )
+            .addCase(UpdateEmail.pending, (state) => {
                 // contact us page
                 state.loading = true;
             })
@@ -241,7 +283,9 @@ export const {
     setChainId,
     setUserImage,
     setUserBanner,
+    setUserRedeemPoint,
     toggleThemeMode,
+    setUnreadMessageCount,
     setSocket,
 } = globalSlice.actions;
 

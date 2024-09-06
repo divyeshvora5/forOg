@@ -1,22 +1,28 @@
 import {
     collectionLikeAction,
+    collectionVoteAction,
     itemLikeAction,
 } from "@/redux/actions/globalAction";
 import { globalState } from "@/redux/reducer/globalSlice";
 import {
     getAuctionServices,
+    getHeroSliderItemsServices,
     getHotPicksServices,
     getPopulerCollectionService,
     getRecentlySoldItemsServices,
     getTrandingNftsServices,
 } from "@/redux/services/itemServices";
-import { getTopSellerService } from "@/redux/services/stateServices";
+import {
+    getTopSellerService,
+    getTrendingCollectionsService,
+} from "@/redux/services/stateServices";
 import { useMemo } from "react";
 import { useReducer } from "react";
 import { useCallback } from "react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Toast } from "@/utils";
+import { useActiveWeb3React } from "./useActiveWeb3React";
 
 const orderOption = [
     { value: "Recently Created", label: "Recently Created" },
@@ -90,6 +96,79 @@ export const useLikeCollection = () => {
     };
 };
 
+export const useVoteCollection = () => {
+    const {
+        walletDetalis: { account },
+        userDetails,
+    } = useSelector(globalState);
+    const { signMessage } = useActiveWeb3React();
+
+    const POINTS = [
+        { value: 1000, label: "1K" },
+        { value: 10000, label: "10K" },
+        { value: 100000, label: "100K" },
+        { value: 1000000, label: "1M" },
+    ];
+
+    const [selectedPoints, setSelectedPoints] = useState(0);
+    const dispatch = useDispatch();
+
+    const handleVote = (id) => {
+        if (!account) {
+            Toast.error("Please connect your wallet");
+            setSelectedPoints(0);
+            return;
+        }
+
+        if (selectedPoints === 0) {
+            Toast.error("Invalid points");
+            setSelectedPoints(0);
+            return;
+        }
+
+        let availablePoints =
+            (userDetails?.points || 0) - (userDetails?.redeemPoints || 0);
+
+        if (availablePoints < selectedPoints) {
+            Toast.error("Insufficient points");
+            setSelectedPoints(0);
+            return;
+        }
+        dispatch(
+            collectionVoteAction({
+                payload: {
+                    id: id,
+                    account: account,
+                    points: Math.floor(selectedPoints),
+                },
+                signMessage,
+            })
+        );
+        setSelectedPoints(0);
+    };
+
+    const handleSelectPoints = (points) => {
+        setSelectedPoints(points);
+    };
+
+    const handleInputChange = (e) => {
+        const inputValue = parseInt(e.target.value.replace(/,/g, ""), 10);
+        if (isNaN(inputValue) || inputValue < 0) {
+            setSelectedPoints(0);
+            return;
+        }
+        setSelectedPoints(inputValue);
+    };
+
+    return {
+        POINTS,
+        selectedPoints,
+        handleVote,
+        handleSelectPoints,
+        handleInputChange,
+    };
+};
+
 export const useHomeAuction = () => {
     const {
         walletDetalis: { account, chainId, status },
@@ -128,7 +207,7 @@ export const useHomeAuction = () => {
     };
 };
 
-export const usePopulerCollection = () => {
+export const usePopulerCollection = ({ limit = 10 }) => {
     const {
         walletDetalis: { account, chainId, status },
     } = useSelector(globalState);
@@ -144,6 +223,7 @@ export const usePopulerCollection = () => {
                 const { data } = await getPopulerCollectionService({
                     chainId: chainId,
                     account: account,
+                    limit,
                 });
                 setPopulerCollection(data?.data || []);
             } catch (err) {
@@ -414,6 +494,75 @@ export const useRecentlySoldItems = () => {
             }
         })();
     }, [status, chainId, account]);
+
+    return {
+        items,
+        loading,
+    };
+};
+
+export const useTrendingCollection = () => {
+    const {
+        walletDetalis: { account, chainId, status },
+    } = useSelector(globalState);
+
+    const [trendingCollections, setTrendingCollections] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (!status) return;
+        (async () => {
+            try {
+                setLoading(true);
+                const { data } = await getTrendingCollectionsService({
+                    chainId: chainId,
+                    account: account,
+                    limit: 35,
+                });
+                setTrendingCollections(data?.data || []);
+            } catch (err) {
+                console.log("err", err);
+            } finally {
+                setLoading(false);
+            }
+        })();
+    }, [status, chainId, account]);
+
+    return {
+        trendingCollections,
+        loading,
+    };
+};
+
+export const useHeroSliderItems = () => {
+    const {
+        walletDetalis: { account, chainId, status },
+    } = useSelector(globalState);
+
+    const [items, setItems] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    const HERO_CHAIN_ID = [369, 8453];
+
+    // To add this in Constants and change chainIds for production
+    // to change cardTitle and CardSubTitle in auctionCard
+
+    useEffect(() => {
+        if (!status) return;
+        (async () => {
+            try {
+                setLoading(true);
+                const { data } = await getHeroSliderItemsServices({
+                    chainIds: HERO_CHAIN_ID,
+                });
+                setItems(data?.data || []);
+            } catch (err) {
+                console.log("err", err);
+            } finally {
+                setLoading(false);
+            }
+        })();
+    }, [status]);
 
     return {
         items,

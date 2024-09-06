@@ -41,18 +41,28 @@ const NFTsTab = ({ collectionDetails = {}, defaultPriceArray = [] }) => {
     }, [collectionDetails?.traitsTypes]);
 
     useEffect(() => {
+        if (!searchQuery) {
+            setTraits(collectionDetails?.traitsTypes);
+            return;
+        }
         const filteredTraits = collectionDetails?.traitsTypes?.filter(
             (trait) => {
                 const lowerCaseSearchQuery = searchQuery.toLowerCase();
                 return (
-                    trait.traitsValues.some((tv) =>
-                        tv.value.toLowerCase().includes(lowerCaseSearchQuery)
-                    ) || trait.name.toLowerCase().includes(lowerCaseSearchQuery)
+                    trait.traitsValues.some((tv) => {
+                        const traitValue =
+                            typeof tv.value === "string"
+                                ? tv.value.toLowerCase()
+                                : tv.value.toString();
+
+                        return traitValue.includes(lowerCaseSearchQuery);
+                    }) ||
+                    trait.name.toLowerCase().includes(lowerCaseSearchQuery)
                 );
             }
         );
         setTraits(filteredTraits);
-    }, [searchQuery]);
+    }, [searchQuery, collectionDetails]);
 
     const handleAttributeSelect = (e) => {
         let attributeArry;

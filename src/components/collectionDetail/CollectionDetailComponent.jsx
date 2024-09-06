@@ -25,10 +25,15 @@ import NFTsTab from "./NFTsTab";
 import ShareURLModal from "../ItemDetails/Model/ShareURLModal";
 import CollectionActivityTab from "./CollectionActivityTab";
 import CollectionAnalyticsTab from "./CollectionAnalyticsTab";
-import { useLikeCollection } from "@/hooks/useHome";
+import { useLikeCollection, useVoteCollection } from "@/hooks/useHome";
 import LikeCount from "./LikeCount";
 import CollectionFollowButton from "./CollectionFollowButton";
 import MembershipGuard from "../Common/MembershipGuard";
+import { useRouter } from "next/router";
+import { PATH_DASHBOARD } from "@/routes/paths";
+import BoostCollectionModal from "./BoostCollectionModal";
+import { ConnectionGuard, Loader } from "..";
+import { getCollectionRoyaltiesFromRpc } from "@/contracts";
 
 const CollectionDetailComponent = () => {
     const {
@@ -37,9 +42,11 @@ const CollectionDetailComponent = () => {
         collectionDetails,
         payload,
     } = useCollectionDetails();
+    const router = useRouter();
     const { account, library, chainId, chain, wallet, signMessage } =
         useActiveWeb3React();
     const { handleLike } = useLikeCollection();
+    const { handleVote } = useVoteCollection();
     const dispatch = useDispatch();
     const [bannerPic, setBannerPic] = useState();
     const [bannerFile, setBannerFile] = useState();
@@ -47,6 +54,8 @@ const CollectionDetailComponent = () => {
     const [collectionFile, setCollectionFile] = useState();
     const [fileRatio, setFileRatio] = useState(1);
     const [description, setDescription] = useState();
+    const [royalties, setRoyalties] = useState();
+    const [updatedRoyalty, setUpdatedRoyalty] = useState();
     const [linksData, setLinksData] = useState({
         website: "",
         twitter: "",
@@ -67,6 +76,10 @@ const CollectionDetailComponent = () => {
 
     const handleVisibility = () => {
         setIsVisible(!isVisible);
+        if (!isVisible) {
+            setCollectionImage(collectionDetails?.image);
+            setBannerPic(collectionDetails?.coverUrl);
+        }
     };
 
     const [linkEditInput, setLinkEditInput] = useState();
@@ -96,7 +109,19 @@ const CollectionDetailComponent = () => {
         setDescription(e.target.value);
     };
 
+    const handleUserRoute = () => {
+        if (!collectionDetails?.creatorAddress) return;
+        router.push(
+            PATH_DASHBOARD.user.detail(collectionDetails?.creatorAddress)
+        );
+    };
+
     //Update Banner image
+
+    useEffect(() => {
+        if (!royalties) return;
+        setUpdatedRoyalty(royalties);
+    }, [royalties]);
 
     const onSubmit = () => {
         if (!collectionDetails?.address) return;
@@ -126,6 +151,8 @@ const CollectionDetailComponent = () => {
                 wallet: wallet,
                 linksData: linksData,
                 chain,
+                updatedRoyalty:
+                    updatedRoyalty == royalties ? null : updatedRoyalty,
                 ownerAddress: account?.toLowerCase(),
             })
         );
@@ -168,22 +195,43 @@ const CollectionDetailComponent = () => {
     }
 
     const [tabIndex, setTabIndex] = useState(0);
+
+    const [boostModal, setBoostModal] = useState(false);
+    const openBoostModal = () => {
+        setBoostModal(true);
+    };
+    const closeBoostModal = () => {
+        setBoostModal(false);
+    };
+
+    useEffect(() => {
+        if (!collectionDetails?.address) return;
+        (async () => {
+            try {
+                const res = await getCollectionRoyaltiesFromRpc({
+                    type: collectionDetails?.type,
+                    address: collectionDetails?.address,
+                    chainId: collectionDetails?.chainId,
+                });
+
+                console.log("res", res);
+                setRoyalties(res);
+            } catch (err) {
+                console.log("err", err);
+            }
+        })();
+    }, [collectionDetails]);
     return (
         <>
-            {/* <PageTitle
-                title={"#BITMATIC ART"}
-                imageUrl={
-                    "https://d17ha18jyelis7.cloudfront.net/collections/originals/16395541-68bd-4f66-a581-6528fb9ffbf4-1705050528582"
-                }
-                id={"664d62cddc66b4a0ba4a6e57"}
-                coverUrl={
-                    "https://d17ha18jyelis7.cloudfront.net/collections/banners/0f62c3d4-d350-43fc-8f80-451cba0dd6a8-1707459809309"
-                }
-            /> */}
+            <PageTitle
+                title={`${
+                    collectionDetails?.name || "NewCollection"
+                } - Collection`}
+            />
             {!loading ? (
                 collectionDetails?.address ? (
                     <CommonPageBlockPad
-                        className="no-container-padding public-profile-page"
+                        className="no-container-padding public-profile-page dark-mode-body"
                         style={{ marginTop: "45px" }}
                     >
                         <div className="graphics-inner-shape">
@@ -286,10 +334,9 @@ const CollectionDetailComponent = () => {
                                                         <ImageLoader
                                                             src={
                                                                 collectionImage ||
-                                                                collectionDetails?.image ||
-                                                                "../../images/collection-img.png"
+                                                                collectionDetails?.image
                                                             }
-                                                            alt=""
+                                                            alt="img"
                                                             mediaRenderer={
                                                                 false
                                                             }
@@ -352,7 +399,7 @@ const CollectionDetailComponent = () => {
                                                                     collectionDetails
                                                                         ?.chainId
                                                                 ]
-                                                            }/address/${
+                                                            }${
                                                                 collectionDetails?.address
                                                             }`}
                                                             target="_blank"
@@ -582,7 +629,7 @@ const CollectionDetailComponent = () => {
                                                                         value={
                                                                             linksData?.twitter
                                                                         }
-                                                                        placeholder="twitter"
+                                                                        placeholder="Twitter"
                                                                     />
                                                                 )}
                                                                 {linkEditInput ===
@@ -597,7 +644,7 @@ const CollectionDetailComponent = () => {
                                                                         value={
                                                                             linksData?.website
                                                                         }
-                                                                        placeholder="website"
+                                                                        placeholder="Website"
                                                                     />
                                                                 )}
                                                                 {linkEditInput ===
@@ -612,7 +659,7 @@ const CollectionDetailComponent = () => {
                                                                         value={
                                                                             linksData?.telegram
                                                                         }
-                                                                        placeholder="telegram"
+                                                                        placeholder="Telegram"
                                                                     />
                                                                 )}
                                                                 {linkEditInput ===
@@ -627,7 +674,7 @@ const CollectionDetailComponent = () => {
                                                                         value={
                                                                             linksData?.discord
                                                                         }
-                                                                        placeholder="discord"
+                                                                        placeholder="Discord"
                                                                     />
                                                                 )}
                                                             </div>
@@ -637,8 +684,10 @@ const CollectionDetailComponent = () => {
                                             <div className="list-block-inner">
                                                 <div className="list-block-inner-left">
                                                     <h3>
-                                                        {collectionDetails?.floorPrice ||
-                                                            0}{" "}
+                                                        {CountParser(
+                                                            collectionDetails?.floorPrice ||
+                                                                0
+                                                        )}{" "}
                                                         {collectionDetails?.floorSymbol ||
                                                             ""}
                                                     </h3>
@@ -712,8 +761,25 @@ const CollectionDetailComponent = () => {
                                                     }`}
                                                 >
                                                     <Input
+                                                        type="number"
+                                                        name="royalties"
+                                                        min="0"
+                                                        max="100"
+                                                        placeholder="0"
+                                                        value={updatedRoyalty}
+                                                        onChange={(e) =>
+                                                            setUpdatedRoyalty(
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        style={{
+                                                            width: "100px",
+                                                            margin: "0 5px",
+                                                        }}
+                                                    />
+                                                    <Input
                                                         as="textarea"
-                                                        placeholder=""
+                                                        placeholder="Description"
                                                         rows={4}
                                                         name="description"
                                                         onChange={
@@ -723,6 +789,9 @@ const CollectionDetailComponent = () => {
                                                             description ||
                                                             collectionDetails?.description
                                                         }
+                                                        style={{
+                                                            margin: "0 5px",
+                                                        }}
                                                     />
                                                     {/* <button>
                                                         <svg
@@ -743,7 +812,12 @@ const CollectionDetailComponent = () => {
                                                 <div className="nft-block-main">
                                                     <p>
                                                         <span>Created by</span>
-                                                        <span>
+                                                        <span
+                                                            className="pointer"
+                                                            onClick={
+                                                                handleUserRoute
+                                                            }
+                                                        >
                                                             {collectionDetails?.creatorName ||
                                                                 ""}
                                                         </span>
@@ -751,9 +825,7 @@ const CollectionDetailComponent = () => {
                                                     <p>
                                                         <span> Royalties</span>
                                                         <span className="bg-highlight">
-                                                            {collectionDetails?.royalties ||
-                                                                "0"}
-                                                            %
+                                                            {royalties || "0"}%
                                                         </span>
                                                     </p>
                                                 </div>
@@ -842,6 +914,109 @@ const CollectionDetailComponent = () => {
                                                         </svg>
                                                         <span>Share</span>
                                                     </Button>
+                                                    <Button
+                                                        isBorderBtn={true}
+                                                        onClick={openBoostModal}
+                                                    >
+                                                        <svg
+                                                            width="20"
+                                                            height="20"
+                                                            viewBox="0 0 20 20"
+                                                            fill="none"
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                        >
+                                                            <path
+                                                                d="M5.556 6.36435C5.46694 7.31435 5.40444 8.9956 5.96538 9.71123C5.96538 9.71123 5.70132 7.86435 8.0685 5.54716C9.02163 4.61435 9.24194 3.3456 8.90913 2.39404C8.72007 1.85498 8.37475 1.40966 8.07475 1.09873C7.89975 0.915914 8.03413 0.614352 8.28882 0.625289C9.82944 0.694039 12.3263 1.12216 13.3873 3.78466C13.8529 4.95341 13.8873 6.16123 13.6654 7.38935C13.5248 8.17373 13.0248 9.91748 14.1654 10.1315C14.9794 10.2847 15.3732 9.63779 15.5498 9.17216C15.6232 8.97841 15.8779 8.92998 16.0154 9.08466C17.3904 10.6487 17.5076 12.4909 17.2232 14.0768C16.6732 17.1425 13.5685 19.3737 10.4841 19.3737C6.631 19.3737 3.56381 17.169 2.7685 13.1784C2.44819 11.5675 2.61069 8.37998 5.09507 6.12998C5.27944 5.96123 5.581 6.11123 5.556 6.36435Z"
+                                                                fill="url(#paint0_radial_10075_13072)"
+                                                            />
+                                                            <path
+                                                                d="M11.8923 12.0975C10.472 10.2694 11.1079 8.18347 11.4564 7.35222C11.5032 7.24285 11.3782 7.13972 11.2798 7.20691C10.6689 7.62253 9.41729 8.60066 8.83448 9.97722C8.04542 11.8382 8.10167 12.7491 8.56886 13.8616C8.85011 14.5319 8.52354 14.6741 8.35948 14.6991C8.20011 14.7241 8.05323 14.6178 7.93604 14.5069C7.59892 14.1832 7.35868 13.772 7.24229 13.3194C7.21729 13.2225 7.09073 13.196 7.03292 13.2757C6.59542 13.8803 6.36886 14.8507 6.35792 15.5366C6.32354 17.6569 8.07511 19.3757 10.1939 19.3757C12.8642 19.3757 14.8095 16.4225 13.2751 13.9538C12.8298 13.235 12.411 12.7647 11.8923 12.0975Z"
+                                                                fill="url(#paint1_radial_10075_13072)"
+                                                            />
+                                                            <defs>
+                                                                <radialGradient
+                                                                    id="paint0_radial_10075_13072"
+                                                                    cx="0"
+                                                                    cy="0"
+                                                                    r="1"
+                                                                    gradientUnits="userSpaceOnUse"
+                                                                    gradientTransform="translate(9.72097 19.4223) rotate(-179.751) scale(11.0293 18.0969)"
+                                                                >
+                                                                    <stop
+                                                                        offset="0.314"
+                                                                        stop-color="#FF9800"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.662"
+                                                                        stop-color="#FF6D00"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.972"
+                                                                        stop-color="#F44336"
+                                                                    />
+                                                                </radialGradient>
+                                                                <radialGradient
+                                                                    id="paint1_radial_10075_13072"
+                                                                    cx="0"
+                                                                    cy="0"
+                                                                    r="1"
+                                                                    gradientUnits="userSpaceOnUse"
+                                                                    gradientTransform="translate(10.3407 8.44728) rotate(90.5787) scale(11.5401 8.68476)"
+                                                                >
+                                                                    <stop
+                                                                        offset="0.214"
+                                                                        stop-color="#FFF176"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.328"
+                                                                        stop-color="#FFF27D"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.487"
+                                                                        stop-color="#FFF48F"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.672"
+                                                                        stop-color="#FFF7AD"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.793"
+                                                                        stop-color="#FFF9C4"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.822"
+                                                                        stop-color="#FFF8BD"
+                                                                        stop-opacity="0.804"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.863"
+                                                                        stop-color="#FFF6AB"
+                                                                        stop-opacity="0.529"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.91"
+                                                                        stop-color="#FFF38D"
+                                                                        stop-opacity="0.209"
+                                                                    />
+                                                                    <stop
+                                                                        offset="0.941"
+                                                                        stop-color="#FFF176"
+                                                                        stop-opacity="0"
+                                                                    />
+                                                                </radialGradient>
+                                                            </defs>
+                                                        </svg>
+                                                        <span>Boost</span>
+                                                    </Button>
+                                                    <BoostCollectionModal
+                                                        show={boostModal}
+                                                        handleClose={
+                                                            closeBoostModal
+                                                        }
+                                                        id={
+                                                            collectionDetails?._id
+                                                        }
+                                                    />
                                                     <ShareURLModal
                                                         show={!!url}
                                                         handleClose={onClose}
@@ -909,9 +1084,27 @@ const CollectionDetailComponent = () => {
                                             }
                                         >
                                             <TabList>
-                                                <Tab>NFTs</Tab>
-                                                <Tab>Analytics</Tab>
-                                                <Tab>Activity</Tab>
+                                                <Tab
+                                                    style={{
+                                                        cursor: "pointer",
+                                                    }}
+                                                >
+                                                    NFTs
+                                                </Tab>
+                                                <Tab
+                                                    style={{
+                                                        cursor: "pointer",
+                                                    }}
+                                                >
+                                                    Analytics
+                                                </Tab>
+                                                <Tab
+                                                    style={{
+                                                        cursor: "pointer",
+                                                    }}
+                                                >
+                                                    Activity
+                                                </Tab>
                                             </TabList>
                                         </Tabs>
                                     </div>
@@ -936,15 +1129,17 @@ const CollectionDetailComponent = () => {
                                 </TabPanel>
                                 {/* Analytics */}
                                 <TabPanel>
-                                    <MembershipGuard>
-                                        {collectionDetails?.address && (
-                                            <CollectionAnalyticsTab
-                                                collectionDetails={
-                                                    collectionDetails
-                                                }
-                                            />
-                                        )}
-                                    </MembershipGuard>
+                                    <ConnectionGuard>
+                                        <MembershipGuard>
+                                            {collectionDetails?.address && (
+                                                <CollectionAnalyticsTab
+                                                    collectionDetails={
+                                                        collectionDetails
+                                                    }
+                                                />
+                                            )}
+                                        </MembershipGuard>
+                                    </ConnectionGuard>
                                 </TabPanel>
                                 {/* Activity */}
                                 <TabPanel>
@@ -969,9 +1164,7 @@ const CollectionDetailComponent = () => {
                 )
             ) : (
                 <>
-                    <div className="d-flex justify-content-center vh-100 align-items-center">
-                        <Spinner animation="border" size="lg" />
-                    </div>
+                    <Loader />
                 </>
             )}
         </>

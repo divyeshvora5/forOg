@@ -27,11 +27,12 @@ const InventoryTab = () => {
     const [sortOrder, setSortOrder] = useState("ASC");
 
     const router = useRouter();
-    const handleRoute = (address = "", tokenid) => {
+    const handleRoute = (address = "", tokenid, chainId) => {
         router.push({
             pathname: PATH_DASHBOARD.item.details,
             query: {
                 itemCollection: address?.toLowerCase(),
+                chainId: chainId,
                 tokenId: tokenid,
             },
         });
@@ -152,11 +153,11 @@ const InventoryTab = () => {
                       },
                       index
                     ) => (
-                      <tr key={index}>
+                      <tr key={index} onClick={() => handleRoute(itemCollection, tokenId, chainId)} className='pointer'>
                         <td>
                           <div className='collection-name'>
                             <div className='collection-profile'>
-                              <img src={image || '../../images/profile-img-new.png'} alt='profile-img'></img>
+                              <img src={image} alt='img'></img>
                             </div>
                             <h3>{name || ''}</h3>
                           </div>
@@ -177,7 +178,7 @@ const InventoryTab = () => {
                         <td>
                           <div className='auction-link-block-left'>
                             <div className='auction-link-block'>
-                              <p onClick={() => handleRoute(itemCollection, tokenId)} className='pointer'>
+                              <p>
                                 <svg
                                   width='20'
                                   height='20'

@@ -12,7 +12,7 @@ const CollectionCard = ({ item }) => {
     const router = useRouter();
     const handleRouteChange = useCallback(() => {
         router.push({
-            pathname: PATH_DASHBOARD.explore.collection(item?.address),
+            pathname: PATH_DASHBOARD.explore.collection(item?.address, item?.chainId),
         });
     }, [item]);
 

@@ -11,6 +11,7 @@ import SwitchComponent from "@/components/rewards/SwitchComponent";
 import { useMembership } from "@/hooks/useMembership";
 import { ConnectionGuard } from "@/components";
 import {
+    GET_CHAIN_NAMES,
     MEMBERSHIP,
     MEMBERSHIP_SUPPORTED_CHAINS,
     SUBSCRIPTION,
@@ -28,8 +29,8 @@ const getMembershipStatus = (memberships) => {
         YOTA: { MONTH: true, YEAR: true, LIFETIME: true },
     };
 
-    memberships.forEach((membership) => {
-        if (membership.expiry > currentTime) {
+    memberships?.forEach((membership) => {
+        if (membership?.expiry > currentTime) {
             const { type, plan } = membership;
             if (plan === "LIFETIME") {
                 status[type].LIFETIME = false;
@@ -100,7 +101,8 @@ const membershipPage = () => {
         if (!isChainSupported) {
             return (
                 <Button disabled style={buttonStyle}>
-                    Please Switch Network to Ethereum
+                    Please Switch Network to{" "}
+                    {GET_CHAIN_NAMES[MEMBERSHIP_SUPPORTED_CHAINS[0]]}
                 </Button>
             );
         }
@@ -152,7 +154,8 @@ const membershipPage = () => {
         if (!isChainSupported) {
             return (
                 <Button disabled style={buttonStyle}>
-                    Please Switch Network to Ethereum
+                    Please Switch Network to{" "}
+                    {GET_CHAIN_NAMES[MEMBERSHIP_SUPPORTED_CHAINS[0]]}
                 </Button>
             );
         }
@@ -193,7 +196,7 @@ const membershipPage = () => {
         <>
             <PageTitle title={"Unlock TesseractX"} />
             <ConnectionGuard>
-                <CommonPageBlockPad>
+                <CommonPageBlockPad className="dark-mode-body">
                     <div className="common-center-graphics-block">
                         <svg
                             width="385"
@@ -491,12 +494,12 @@ const membershipPage = () => {
                         <div className="membership-block">
                             <div className="membership-block-title">
                                 <h2>Unlock TesseractX</h2>
-                                <p>
+                                {/* <p>
                                     Our platform provides Expiring soulbound
                                     NFTs (EIP-4671) that grant access to
                                     exclusive features and enhancements, and are{" "}
                                     <span>non-transferable.</span>
-                                </p>
+                                </p> */}
                             </div>
                             <div className="membership-switch-main">
                                 {Object.keys(MEMBERSHIP).map((key, index) => (

@@ -22,13 +22,16 @@ module.exports = {
       },
       
     extend: {
+      colors: {
+        customPink: '#fb4ef1',
+      },
       opacity: {
         "0x": "0%",
         "50x": "50%",
         "100x": "100%",
       },
       animation: {
-        shimmer: "shimmer 3.5s linear infinite",
+        shimmer: "shimmer 14s linear infinite",
       },
       screens:{
         sxl: "1180px",

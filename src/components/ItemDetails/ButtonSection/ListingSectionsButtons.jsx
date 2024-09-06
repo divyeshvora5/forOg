@@ -28,11 +28,11 @@ const ListingSectionsButtons = () => {
     const [listingDetails, setListingDetails] = useState();
     const [loading, setLoading] = useState(false);
 
-    console.log('selectedItem', selectedItem);
+    // console.log('selectedItem', selectedItem);
 
-    const { rawValue, loading: balanceLoading } = useBalance({ chainId, address: selectedItem?.currency, wallet: wallet });
+    const { balance, rawValue, loading: balanceLoading } = useBalance({ chainId, address: selectedItem?.currency, wallet: wallet });
 
-    console.log('balance', +rawValue)
+    // console.log('balance', +rawValue)
 
     useEffect(() => {
         if (!selectedItem || selectedItem?.type !== ITEM_LISTING_STATUS.LISTING)

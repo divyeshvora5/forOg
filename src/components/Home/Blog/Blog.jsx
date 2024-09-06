@@ -2,7 +2,6 @@ import Link from "next/link";
 import Slider from "react-slick";
 import { Container } from "react-bootstrap";
 import { Spinner } from "react-bootstrap";
-import { usePopulerCollection } from "@/hooks/useHome";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { useBlog } from "@/hooks/useFetchHooks";
 import Blogbox from "@/components/Blogs/Blogbox";
@@ -13,7 +12,7 @@ const Blog = () => {
       });
 
 	return (
-    <div className='popular-collection-main'>
+    <div className='popular-collection-main blog-details-item'>
       <Container>
         <div className='common-title-block desktop-view-title'>
           <h2>Blog Posts</h2>

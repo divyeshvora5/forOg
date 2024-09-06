@@ -1,18 +1,24 @@
 import { useEditUser } from "@/hooks/useProfileHook";
 import { globalState } from "@/redux/reducer/globalSlice";
 import { Button, FormGroup, Input, Label } from "@/styles/pages/main.style";
+import { copyToClipboard } from "@/utils";
 import React, { useEffect, useState } from "react";
+import { Accordion } from "react-bootstrap";
 import { useSelector } from "react-redux";
-
+import DeleteConfirmation from "./DeleteConfirmation";
 const AccountSettings = () => {
     const {
         formik,
         nameLoading,
         unique,
+        isUpdating,
         handleFileChange,
         // handleCheckBox,
         handleRadioChange,
     } = useEditUser();
+    const {
+        walletDetalis: { account },
+    } = useSelector(globalState);
     const [show, setShow] = useState({
         Website: false,
         Discord: false,
@@ -20,12 +26,33 @@ const AccountSettings = () => {
         Twitter: false,
         Telegram: false,
     });
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const openDeleteModal = () => {
+        setShowDeleteModal(true);
+    };
+    const hideDeleteModal = () => {
+        setShowDeleteModal(false);
+    };
     const handleToggle = (name) => {
         setShow({ ...show, [name]: !show[name] });
     };
 
+    const copyProfileUrl = () => {
+        const { origin } = window.location;
+        const profileUrl = `${origin}/@${formik.values.name}`;
+        copyToClipboard(profileUrl);
+    };
+
     return (
         <div className="tab-block-right">
+            {formik.values.name && (
+                <DeleteConfirmation
+                    show={showDeleteModal}
+                    account={account}
+                    handleClose={hideDeleteModal}
+                    onConfirm={hideDeleteModal}
+                />
+            )}
             <h2 className="title-text-right">Edit Profile</h2>
             <form onSubmit={formik.handleSubmit}>
                 <div className="tab-block-right-account">
@@ -36,12 +63,113 @@ const AccountSettings = () => {
                             <Input
                                 type="text"
                                 id="name"
+                                name="fullName"
+                                placeholder="Full name"
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                value={formik.values.fullName}
+                                // disabled={formik.values.usePns}
+                            />
+                            {formik.touched.fullName &&
+                            formik.errors.fullName ? (
+                                <div className="text-danger">
+                                    {formik.errors.fullName}
+                                </div>
+                            ) : null}
+                        </FormGroup>
+
+                        <FormGroup>
+                            <p>Use Domain Name:</p>
+                            <div className="block-radio-custom">
+                                <div className="block-radio-custom-inner">
+                                    <input
+                                        type="radio"
+                                        id="useENS"
+                                        name="useDomain"
+                                        value="ENS"
+                                        onChange={handleRadioChange}
+                                        checked={
+                                            formik.values.useDomain === "ENS"
+                                        }
+                                    />
+                                    <label htmlFor="useENS" className="ms-1">
+                                        <a
+                                            href="https://ens.domains/"
+                                            target="_blank"
+                                            className="ms-2"
+                                        >
+                                            <img
+                                                src="/images/nameDomains/ens.svg"
+                                                alt="ENS"
+                                                height={"20px"}
+                                            />
+                                        </a>
+                                    </label>
+                                </div>
+                                <div className="block-radio-custom-inner">
+                                    <input
+                                        type="radio"
+                                        id="usePNS"
+                                        name="useDomain"
+                                        value="PNS"
+                                        onChange={handleRadioChange}
+                                        checked={
+                                            formik.values.useDomain === "PNS"
+                                        }
+                                    />
+                                    <label htmlFor="usePNS" className="ms-1">
+                                        <a
+                                            href="https://www.pulse.domains/"
+                                            target="_blank"
+                                            className="ms-1"
+                                        >
+                                            <img
+                                                src="/images/nameDomains/pns.png"
+                                                alt="PNS"
+                                                height={"24px"}
+                                            />
+                                        </a>
+                                    </label>
+                                </div>
+                                <div className="block-radio-custom-inner">
+                                    <input
+                                        type="radio"
+                                        id="useBNS"
+                                        name="useDomain"
+                                        value="BNS"
+                                        onChange={handleRadioChange}
+                                        checked={
+                                            formik.values.useDomain === "BNS"
+                                        }
+                                    />
+                                    <label htmlFor="useBNS" className="ms-1">
+                                        <a
+                                            href="https://basens.domains/"
+                                            target="_blank"
+                                            className="ms-1"
+                                        >
+                                            <img
+                                                src="/images/nameDomains/bns.png"
+                                                alt="BNS"
+                                                height={"22px"}
+                                            />
+                                        </a>
+                                    </label>
+                                </div>
+                            </div>
+                        </FormGroup>
+
+                        <FormGroup>
+                            <Label>Username</Label>
+                            <Input
+                                type="text"
+                                id="name"
                                 name="name"
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 value={formik.values.name}
                                 placeholder="Name"
-                                disabled={formik.values.usePns === "Yes"}
+                                // disabled={formik.values.usePns === "Yes"}
                                 // disabled={formik.values.usePns}
                             />
                             {formik.touched.name && formik.errors.name ? (
@@ -49,79 +177,49 @@ const AccountSettings = () => {
                                     {formik.errors.name}
                                 </div>
                             ) : null}
+                            <p>
+                                Your profile will be available on
+                                tesseractx.com/@{formik.values.name}
+                                {formik.values.name && (
+                                    <svg
+                                        width="15"
+                                        height="16"
+                                        viewBox="0 0 15 16"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        onClick={copyProfileUrl}
+                                    >
+                                        <path
+                                            d="M4.16669 6.33464C4.16669 5.89261 4.34228 5.46869 4.65484 5.15612C4.9674 4.84356 5.39133 4.66797 5.83335 4.66797H12.5C12.942 4.66797 13.366 4.84356 13.6785 5.15612C13.9911 5.46869 14.1667 5.89261 14.1667 6.33464V13.0013C14.1667 13.4433 13.9911 13.8673 13.6785 14.1798C13.366 14.4924 12.942 14.668 12.5 14.668H5.83335C5.39133 14.668 4.9674 14.4924 4.65484 14.1798C4.34228 13.8673 4.16669 13.4433 4.16669 13.0013V6.33464Z"
+                                            stroke="black"
+                                            stroke-width="1.66667"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        />
+                                        <path
+                                            d="M10.8334 4.66732V3.00065C10.8334 2.55862 10.6578 2.1347 10.3452 1.82214C10.0327 1.50958 9.60873 1.33398 9.16671 1.33398H2.50004C2.05801 1.33398 1.63409 1.50958 1.32153 1.82214C1.00897 2.1347 0.833374 2.55862 0.833374 3.00065V9.66732C0.833374 10.1093 1.00897 10.5333 1.32153 10.8458C1.63409 11.1584 2.05801 11.334 2.50004 11.334H4.16671"
+                                            stroke="black"
+                                            stroke-width="1.66667"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        />
+                                    </svg>
+                                )}
+                            </p>
                         </FormGroup>
-
-                        <FormGroup className="d-flex align-items-center">
-                            <p>Use Domain Name:</p>
-                            <div className="d-flex align-items-center mx-2">
-                                <input
-                                    type="radio"
-                                    id="useENS"
-                                    name="useDomain"
-                                    value="ENS"
-                                    onChange={handleRadioChange}
-                                    checked={formik.values.useDomain === "ENS"}
-                                />
-                                <label htmlFor="useENS" className="ms-1">
-                                    <a
-                                        href="https://ens.domains/"
-                                        target="_blank"
-                                        className="ms-2"
-                                    >
-                                        <img
-                                            src="/images/nameDomains/ens.svg"
-                                            alt="ENS"
-                                            height={"20px"}
-                                        />
-                                    </a>
-                                </label>
-                            </div>
-                            <div className="d-flex align-items-center mx-2">
-                                <input
-                                    type="radio"
-                                    id="usePNS"
-                                    name="useDomain"
-                                    value="PNS"
-                                    onChange={handleRadioChange}
-                                    checked={formik.values.useDomain === "PNS"}
-                                />
-                                <label htmlFor="usePNS" className="ms-1">
-                                    <a
-                                        href="https://www.pulse.domains/"
-                                        target="_blank"
-                                        className="ms-1"
-                                    >
-                                        <img
-                                            src="/images/nameDomains/pns.png"
-                                            alt="PNS"
-                                            height={"24px"}
-                                        />
-                                    </a>
-                                </label>
-                            </div>
-                            <div className="d-flex align-items-center mx-2">
-                                <input
-                                    type="radio"
-                                    id="useBNS"
-                                    name="useDomain"
-                                    value="BNS"
-                                    onChange={handleRadioChange}
-                                    checked={formik.values.useDomain === "BNS"}
-                                />
-                                <label htmlFor="useBNS" className="ms-1">
-                                    <a
-                                        href="https://basens.domains/"
-                                        target="_blank"
-                                        className="ms-1"
-                                    >
-                                        <img
-                                            src="/images/nameDomains/bns.png"
-                                            alt="BNS"
-                                            height={"22px"}
-                                        />
-                                    </a>
-                                </label>
-                            </div>
+                        <FormGroup>
+                            <Label>Bio</Label>
+                            <Input
+                                className="textarea-block-height dark-theme-textarea"
+                                as="textarea"
+                                type="text"
+                                id="bio"
+                                name="bio"
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                value={formik.values.bio}
+                                // disabled={formik.values.usePns}
+                            />
                         </FormGroup>
 
                         {/* <FormGroup className="d-flex">
@@ -628,6 +726,54 @@ const AccountSettings = () => {
                     >
                         Update Profile
                     </Button>
+                </div>
+                <div
+                    className="acco-profile-block"
+                    style={{ marginTop: "50px" }}
+                >
+                    <Accordion>
+                        <Accordion.Item eventKey="0" style={{ border: "none" }}>
+                            <Accordion.Header>
+                                <div className="header-svg-block">
+                                    <svg
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <path
+                                            fill-rule="evenodd"
+                                            clip-rule="evenodd"
+                                            d="M6.53583 3.16834C8.22667 2.16751 9.07167 1.66667 10 1.66667C10.9283 1.66667 11.7733 2.16667 13.4642 3.16834L14.0358 3.50667C15.7267 4.50834 16.5717 5.00917 17.0358 5.83334C17.5 6.65834 17.5 7.65834 17.5 9.66167V10.3383C17.5 12.3408 17.5 13.3425 17.0358 14.1667C16.5717 14.9917 15.7267 15.4917 14.0358 16.4925L13.4642 16.8317C11.7733 17.8325 10.9283 18.3333 10 18.3333C9.07167 18.3333 8.22667 17.8333 6.53583 16.8317L5.96417 16.4925C4.27333 15.4925 3.42833 14.9908 2.96417 14.1667C2.5 13.3417 2.5 12.3417 2.5 10.3383V9.66167C2.5 7.65834 2.5 6.6575 2.96417 5.83334C3.42833 5.00834 4.27333 4.50834 5.96417 3.50667L6.53583 3.16834ZM10.8333 13.3333C10.8333 13.5544 10.7455 13.7663 10.5893 13.9226C10.433 14.0789 10.221 14.1667 10 14.1667C9.77899 14.1667 9.56702 14.0789 9.41074 13.9226C9.25446 13.7663 9.16667 13.5544 9.16667 13.3333C9.16667 13.1123 9.25446 12.9004 9.41074 12.7441C9.56702 12.5878 9.77899 12.5 10 12.5C10.221 12.5 10.433 12.5878 10.5893 12.7441C10.7455 12.9004 10.8333 13.1123 10.8333 13.3333ZM10 5.20834C10.1658 5.20834 10.3247 5.27419 10.4419 5.3914C10.5592 5.50861 10.625 5.66758 10.625 5.83334V10.8333C10.625 10.9991 10.5592 11.1581 10.4419 11.2753C10.3247 11.3925 10.1658 11.4583 10 11.4583C9.83424 11.4583 9.67527 11.3925 9.55806 11.2753C9.44085 11.1581 9.375 10.9991 9.375 10.8333V5.83334C9.375 5.66758 9.44085 5.50861 9.55806 5.3914C9.67527 5.27419 9.83424 5.20834 10 5.20834Z"
+                                            fill="#FF0000"
+                                        />
+                                    </svg>
+                                    <h3>Danger Zone</h3>
+                                </div>
+                            </Accordion.Header>
+                            <Accordion.Body
+                                className="pointer"
+                                onClick={openDeleteModal}
+                            >
+                                <div className="acco-delete-account">
+                                    <svg
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <path
+                                            d="M4.99996 15.8333C4.99996 16.75 5.74996 17.5 6.66663 17.5H13.3333C14.25 17.5 15 16.75 15 15.8333V5.83333H4.99996V15.8333ZM15.8333 3.33333H12.9166L12.0833 2.5H7.91663L7.08329 3.33333H4.16663V5H15.8333V3.33333Z"
+                                            fill="white"
+                                        />
+                                    </svg>
+                                    <h2>Delete Account</h2>
+                                </div>
+                            </Accordion.Body>
+                        </Accordion.Item>
+                    </Accordion>
                 </div>
             </form>
         </div>

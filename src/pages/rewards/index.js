@@ -7,15 +7,25 @@ import { CommonPageBlockPad } from "@/styles/pages/profile-page";
 import { FormGroup, Label, Input } from "@/styles/pages/main.style";
 import React, { useEffect, useState } from "react";
 import Table from "react-bootstrap/Table";
-import { useUserRewardData, useUserRewardHistory } from "@/hooks/useFetchHooks";
+import {
+    useAllBonusTypesData,
+    useUserRewardData,
+    useUserRewardHistory,
+} from "@/hooks/useFetchHooks";
 import moment from "moment";
-import { CountParser, copyToClipboard, shortenText } from "@/utils";
+import {
+    CountParser,
+    copyToClipboard,
+    getBonusImage,
+    shortenText,
+} from "@/utils";
 import { useSelector } from "react-redux";
 import { globalState } from "@/redux/reducer/globalSlice";
 import { useRouter } from "next/router";
 import PageTitle from "@/components/Common/PageTitle";
 import { ConnectionGuard } from "@/components";
 import { PATH_DASHBOARD } from "@/routes/paths";
+import BuyPointsModal from "@/components/rewards/BuyPointsModal";
 
 const homepage = () => {
     const router = useRouter();
@@ -29,6 +39,8 @@ const homepage = () => {
         handleLimitChange,
     } = useUserRewardHistory();
     const { data, loading: rewardDataLoading } = useUserRewardData();
+    const { data: bonusTypesData, loading: bonusTypesDataLoading } =
+        useAllBonusTypesData();
     const { userDetails } = useSelector(globalState);
     const [referralLink, setReferralLink] = useState("");
 
@@ -44,11 +56,50 @@ const homepage = () => {
         copyToClipboard(referralLink);
     };
 
+    const bonusClasses = [
+        "first-bonuses",
+        "second-bonuses",
+        "third-bonuses",
+        "fourth-bonuses",
+        "fifth-bonuses",
+    ];
+
+    const getBonusClass = (index, userBonus) => {
+        if (userBonus <= 0) {
+            return "six-bonuses";
+        } else {
+            return bonusClasses[index % bonusClasses.length];
+        }
+    };
+
+    const [showBuyPoints, setShowBuyPoints] = useState(false);
+
+    const handleShowBuyPoints = () => setShowBuyPoints(true);
+    const handleCloseBuyPoints = () => setShowBuyPoints(false);
+
+    const handleRoute = (item) => {
+        if (!item?.from) return;
+        let pathname, query;
+        if (item.type === "Referral") {
+            pathname = PATH_DASHBOARD.user.detail(item.from);
+        } else if (["Buy", "Sell"].includes(item.type)) {
+            pathname = PATH_DASHBOARD.item.details;
+            query = {
+                itemCollection: item?.from,
+                chainId: item?.chainId,
+                tokenId: item?.tokenId,
+            };
+        }
+        if (pathname) {
+            router.push({ pathname, query });
+        }
+    };
+
     return (
         <>
             <PageTitle title={"Rewards"} />
             <ConnectionGuard>
-                <CommonPageBlockPad>
+                <CommonPageBlockPad className="dark-mode-body">
                     <div className="common-center-graphics-block">
                         <svg
                             width="385"
@@ -357,7 +408,10 @@ const homepage = () => {
                                     every trade, collection, and interaction
                                     propels you towards exclusive rewards.
                                 </p>
-                                <Link href={PATH_DASHBOARD.blog.root}>
+                                <Link
+                                    href={PATH_DASHBOARD.blog.root}
+                                    className="learn-more-link"
+                                >
                                     Learn More
                                 </Link>
                             </div>
@@ -539,6 +593,16 @@ const homepage = () => {
                                             <h4>2x Multiplier</h4>
                                         </div>
                                     </div>
+                                    <Button
+                                        className="learn-more-link"
+                                        onClick={handleShowBuyPoints}
+                                    >
+                                        Get Points
+                                    </Button>
+                                    <BuyPointsModal
+                                        show={showBuyPoints}
+                                        handleClose={handleCloseBuyPoints}
+                                    />
                                 </div>
                                 <div className="earn-your-block">
                                     <h2 className="earn-title">
@@ -620,8 +684,11 @@ const homepage = () => {
                                                             />
                                                         </svg>
                                                         <span>
-                                                            {data?.referralPoints ||
-                                                                0}
+                                                            {CountParser(
+                                                                data?.referralPoints ||
+                                                                    0,
+                                                                0
+                                                            )}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -632,21 +699,55 @@ const homepage = () => {
                                 <div className="bonuses-block">
                                     <h2 className="bonuses-title">Bonuses</h2>
                                     <div className="bonuses-block-inner">
-                                        <div className="bonuses-block-inner-block">
-                                            <div className="img-bonuses">
-                                                <img
-                                                    src={
-                                                        "../../images/bonuses-img.png"
-                                                    }
-                                                    alt="bonuses-img"
-                                                ></img>
-                                            </div>
-                                            <h4>
-                                                100x <span>Bonus</span>
-                                            </h4>
-                                            <h5>70,000</h5>
-                                        </div>
-                                        <div className="bonuses-block-inner-block second-bonuses">
+                                        {bonusTypesDataLoading ? (
+                                            <>
+                                                <div className="d-flex justify-content-center w-full">
+                                                    <Spinner
+                                                        animation="border"
+                                                        size="md"
+                                                    />
+                                                </div>
+                                            </>
+                                        ) : !bonusTypesData?.length > 0 ? (
+                                            <>
+                                                <div className="d-flex justify-content-center">
+                                                    {/* No Activity Found! */}
+                                                </div>
+                                            </>
+                                        ) : (
+                                            bonusTypesData.map(
+                                                (bonus, index) => (
+                                                    <div
+                                                        className={`bonuses-block-inner-block ${getBonusClass(
+                                                            index,
+                                                            bonus.userBonus
+                                                        )}`}
+                                                        key={bonus._id}
+                                                    >
+                                                        <div className="img-bonuses">
+                                                            <img
+                                                                src={getBonusImage(
+                                                                    bonus?.address ||
+                                                                        bonus?.type,
+                                                                    bonus?.image
+                                                                )}
+                                                                alt="bonuses-img"
+                                                                key={index}
+                                                            />
+                                                        </div>
+                                                        <h4>
+                                                            {bonus.multiplier}x{" "}
+                                                            <span>Bonus</span>
+                                                        </h4>
+                                                        <h5>
+                                                            {bonus.userBonus}
+                                                        </h5>
+                                                    </div>
+                                                )
+                                            )
+                                        )}
+                                        {}
+                                        {/* <div className="bonuses-block-inner-block second-bonuses">
                                             <div className="img-bonuses">
                                                 <img
                                                     src={
@@ -720,7 +821,7 @@ const homepage = () => {
                                             <div className="img-bonuses">
                                                 <img
                                                     src={
-                                                        "../../images/bonuses-img-7.png"
+                                                        "../../images/bonuses-img.png"
                                                     }
                                                     alt="bonuses-img"
                                                 ></img>
@@ -743,7 +844,7 @@ const homepage = () => {
                                                 10x <span>Bonus</span>
                                             </h4>
                                             <h5>10,000</h5>
-                                        </div>
+                                        </div> */}
                                     </div>
                                 </div>
                                 <div className="reward-points-block">
@@ -910,9 +1011,20 @@ const homepage = () => {
                                                                         {item?.type ||
                                                                             ""}
                                                                     </td>
-                                                                    <td>
+                                                                    <td
+                                                                        className={`${
+                                                                            item?.from
+                                                                                ? "pointer"
+                                                                                : ""
+                                                                        }`}
+                                                                        onClick={() =>
+                                                                            handleRoute(
+                                                                                item
+                                                                            )
+                                                                        }
+                                                                    >
                                                                         {shortenText(
-                                                                            item?.address ||
+                                                                            item?.from ||
                                                                                 "",
                                                                             6,
                                                                             4

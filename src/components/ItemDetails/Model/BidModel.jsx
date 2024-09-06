@@ -23,10 +23,19 @@ const BidModel = ({
     refetch,
     auctionCreator,
 }) => {
-    const { library, account, balance, rawBalanceValue, chainId, wallet, chain, signMessage } = useActiveWeb3React();
+    const {
+        library,
+        account,
+        balance,
+        rawBalanceValue,
+        chainId,
+        wallet,
+        chain,
+        signMessage,
+    } = useActiveWeb3React();
     const { contractLoading } = useSelector(marketState);
 
-    console.log('item', item)
+    // console.log("item", item);
 
     const dispatch = useDispatch();
 
@@ -108,7 +117,7 @@ const BidModel = ({
         const isValidNewBid =
             Number(bidAmount) > lastBidAmount &&
             ((Number(bidAmount) - lastBidAmount) * 10000) / lastBidAmount >=
-            bpsPercentage;
+                bpsPercentage;
 
         if (!isValidNewBid) {
             //pending show message
@@ -132,7 +141,7 @@ const BidModel = ({
                     address: item?.currency,
                     decimals: item?.decimal,
                 },
-                signMessage
+                signMessage,
             })
         );
 
@@ -241,12 +250,13 @@ const BidModel = ({
             const isValidNewBid =
                 Number(bidAmount) > lastBidAmount &&
                 ((Number(bidAmount) - lastBidAmount) * 10000) / lastBidAmount >=
-                bpsPercentage;
+                    bpsPercentage;
 
             if (!isValidNewBid) {
                 return {
-                    text: `bid amount must be ${bpsPercentage / 100
-                        }% higher from lastbid`,
+                    text: `bid amount must be ${
+                        bpsPercentage / 100
+                    }% higher from lastbid`,
                     disabled: true,
                 };
             }
@@ -335,7 +345,12 @@ const BidModel = ({
                         <div className="balance-block-inner">
                             <h4>Balance</h4>
                             <h4>
-                                {balance} {item?.symbol}
+                                {balance
+                                    ? parseFloat(
+                                          balance.replace(/,/g, "")
+                                      ).toFixed(2)
+                                    : 0}{" "}
+                                {item?.symbol}
                             </h4>
                         </div>
                     </div>
@@ -376,10 +391,7 @@ const BidModel = ({
                                 >
                                     <div className="history-block-left">
                                         <img
-                                            src={
-                                                bid?.userLogo ||
-                                                "/images/square-img.svg"
-                                            }
+                                            src={bid?.userLogo}
                                             alt="img"
                                         ></img>
                                         <div className="history-block-left-details">

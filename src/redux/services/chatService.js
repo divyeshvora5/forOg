@@ -1,11 +1,11 @@
-import { Axios } from "@/utils";
+import { SocketAxios } from "@/utils";
 
-export const createChatService = async (payload) => {
-    return await Axios.post("chats", payload);
-};
+// export const createChatService = async (payload) => {
+//     return await SocketAxios.post("chats", payload);
+// };
 
 export const getUserChatsServices = async (params) => {
-    return await Axios.get("chats", {
+    return await SocketAxios.get("chats", {
         params: params,
     });
 };
@@ -13,11 +13,11 @@ export const getUserChatsServices = async (params) => {
 // messages
 
 export const sendMessageService = async (payload) => {
-    return await Axios.post("messages", payload);
+    return await SocketAxios.post("messages", payload);
 };
 
 export const getConversationServices = async (params) => {
-    return await Axios.get("messages", {
+    return await SocketAxios.get("messages", {
         params: params,
     });
 };

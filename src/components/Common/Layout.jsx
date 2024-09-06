@@ -11,7 +11,11 @@ import {
 } from "@/redux/actions/globalAction";
 import { useActiveWeb3React } from "@/hooks/useActiveWeb3React";
 import { setSocket, setWalletDetails } from "@/redux/reducer/globalSlice";
-import { RPC_URLS, WALLETNOTIFICATION_ENV, WALLET_NOTIFICATION_CHANNEL } from "@/constant";
+import {
+    RPC_URLS,
+    WALLETNOTIFICATION_ENV,
+    WALLET_NOTIFICATION_CHANNEL,
+} from "@/constant";
 import io from "socket.io-client";
 import { useRouter } from "next/router";
 import { ToastContainer } from "react-toastify";
@@ -22,6 +26,7 @@ import { client } from "@/constant/walletPrefrences";
 import { CONSTANTS, PushAPI } from "@pushprotocol/restapi";
 import { Toast } from "@/utils";
 import { signForWalletConnect } from "@/redux/services/signService";
+import { ChatProvider } from "@/context/ChatContext";
 const SuccessAnimation = dynamic(
     () => import("@/components/Common/Success/successAnimation"),
     { ssr: false }
@@ -32,7 +37,8 @@ const ErrorAnimation = dynamic(
 );
 
 const Layout = ({ children }) => {
-    const { account, chainId, status, wallet, chain } = useActiveWeb3React();
+    const { account, chainId, status, wallet, chain, deactivate } =
+        useActiveWeb3React();
     const dispatch = useDispatch();
     const parts = process.env.API_URL.split("/");
     const baseUrl = parts.slice(0, 3).join("/");
@@ -71,6 +77,7 @@ const Layout = ({ children }) => {
             try {
                 let payload = {
                     account,
+                    deactivate,
                 };
                 if (referralCode) {
                     payload.params = {
@@ -96,7 +103,7 @@ const Layout = ({ children }) => {
                     );
                 });
             } catch (err) {
-                console.log('err', err);
+                console.log("err", err);
             }
         } else {
             dispatch(
@@ -116,40 +123,40 @@ const Layout = ({ children }) => {
         }
     }, [chainId, account]);
 
-    useEffect(() => {
-        if (!account) return;
-        const newSocket = io(baseUrl);
-        dispatch(setSocket(newSocket));
-        return () => {
-            newSocket.disconnect();
-        };
-    }, [account]);
+    // useEffect(() => {
+    //     if (!account) return;
+    //     const newSocket = io(baseUrl);
+    //     dispatch(setSocket(newSocket));
+    //     return () => {
+    //         newSocket.disconnect();
+    //     };
+    // }, [account]);
 
     useEffect(() => {
         dispatch(getCategoryActions());
     }, []);
-
 
     useEffect(() => {
         if (!wallet || !chainId) return;
 
         (async () => {
             try {
-                const userAccount = localStorage.getItem('connectedWallet');
+                const userAccount = localStorage.getItem("connectedWallet");
                 if (userAccount === wallet?.address) return;
 
-                const reloadGet = localStorage.getItem('reload');
-                if(reloadGet !== wallet.address) {
-                    localStorage.setItem('reload', wallet?.address);
-                    window.location.reload();
-                    return;
-                }   
-
+                // const reloadGet = localStorage.getItem('reload');
+                // if(reloadGet !== wallet.address) {
+                //     localStorage.setItem('reload', wallet?.address);
+                //     window.location.reload();
+                //     return;
+                // }
 
                 const msg = `I want to sign account details with this information: ${chainId}:${wallet?.address}`;
 
+                // Toast.success("Approve sign request in your wallet!");
+
                 const signature = await wallet.signMessage({
-                    message: msg
+                    message: msg,
                 });
 
                 if (!signature) {
@@ -158,19 +165,21 @@ const Layout = ({ children }) => {
 
                 const { data } = await signForWalletConnect({
                     chainId,
-                    account:wallet?.address,
+                    account: wallet?.address,
                     signature,
                 });
                 if (!data?.status) {
                     return Toast.error(data.message);
                 }
-                localStorage.setItem('connectedWallet', wallet?.address);
+                localStorage.setItem("connectedWallet", wallet?.address);
             } catch (err) {
-                console.log('err', err)
+                console.log("err", err);
+                if (err?.code === 4001) {
+                    window.location.reload();
+                }
             }
-        })()
-
-    }, [wallet, chainId])
+        })();
+    }, [wallet, chainId]);
 
     // useEffect(() => {
     //     if(!wallet || !chain || !WALLET_NOTIFICATION_CHANNEL[chain?.id]) return;
@@ -243,7 +252,9 @@ const Layout = ({ children }) => {
                     }
                 }}
             />
-            <Header />
+            {/* <ChatProvider> */}
+                <Header />
+            {/* </ChatProvider> */}
             {children}
             <Footer />
         </>

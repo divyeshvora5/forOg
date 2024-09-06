@@ -22,9 +22,9 @@ const FollowingTab = () => {
     const { handleFollow } = useFollowUser();
     const router = useRouter();
 
-    const handleRouteChange = (address) => {
+    const handleRouteChange = (userName) => {
         router.push({
-            pathname: PATH_DASHBOARD.user.detail(address),
+            pathname: PATH_DASHBOARD.user.detail(userName),
         });
     };
 
@@ -33,7 +33,7 @@ const FollowingTab = () => {
             <div className="tab-block-right">
                 <h2 className="title-text-right">Following</h2>
                 <div className="following-block-main">
-                    {items.length ? (
+                    {items.length > 0 ? (
                         items.map((item, index) => (
                             <div className="following-block-main-inner">
                                 <div className="following-block-main-block">
@@ -79,11 +79,11 @@ const FollowingTab = () => {
                                         </Dropdown.Menu>
                                     </Dropdown>
                                     <img
-                                        src={item.image || "/images/user.svg"}
-                                        alt="profile-img"
+                                        src={item.image}
+                                        alt="img"
                                         className="pointer"
                                         onClick={() =>
-                                            handleRouteChange(item?.address)
+                                            handleRouteChange(item?.name)
                                         }
                                     ></img>
                                     <h4>{item.name || "NoName"}</h4>
@@ -99,9 +99,11 @@ const FollowingTab = () => {
                             </div>
                         ))
                     ) : (
-                        <div className="d-flex justify-content-center w-100 align-items-center" style={{height:"350px"}}>
-                        <p>
-                            You are not following anyone yet.</p>
+                        <div
+                            className="d-flex justify-content-center w-100 align-items-center"
+                            style={{ height: "350px" }}
+                        >
+                            <p>You are not following anyone yet.</p>
                         </div>
                     )}
                 </div>

@@ -8,18 +8,64 @@ import {
     createAuctionAction,
     creatingListingAction,
 } from "@/redux/actions/marketAction";
-import { SALE_TYPE, TYPE } from "@/constant";
+import {
+    GET_CHAIN_NAMES,
+    OPENSEA_LISTING_FEE,
+    SALE_TYPE,
+    TYPE,
+    ZERO_TOKEN_ADDRESS,
+} from "@/constant";
 import { Toast, validateNetwork } from "@/utils";
 import { PATH_DASHBOARD } from "@/routes/paths";
+import { useOpenSeaListing } from "./listingsHook";
+
+export const MARKETPLACES = {
+    OPENSEA: "OPENSEA",
+};
+
+const MARKETPLACES_DATA = {
+    [MARKETPLACES.OPENSEA]: {
+        listing: false,
+        fee: OPENSEA_LISTING_FEE,
+        amount: 0,
+        image: "/images/listing-block-logo-6.svg",
+        supportedChains: [1, 8453],
+    },
+};
 
 export const useSale = () => {
     const dispatch = useDispatch();
     const router = useRouter();
-    const { account, library, chainId, chain, signMessage, wallet } = useActiveWeb3React();
+    const { account, library, chainId, chain, signMessage, wallet } =
+        useActiveWeb3React();
+    const { listOnOpenSea, fee, isSupportedChain } = useOpenSeaListing();
 
     const [item, setItem] = useState();
+    const [listingOptions, setListingOptions] = useState(MARKETPLACES_DATA);
 
-    // console.log("item", item);
+    const selectMarketPlaces = (event, key) => {
+        const { checked } = event?.target;
+        if (formik.values.saleType !== SALE_TYPE.LIST) return;
+
+        if (!MARKETPLACES_DATA[key].supportedChains.includes(chainId)) {
+            return Toast.error(
+                `${GET_CHAIN_NAMES[chainId]} is not supported in the ${key} marketplace.`
+            );
+        }
+        if (ZERO_TOKEN_ADDRESS !== formik.values.currency) {
+            return Toast.error(
+                `Please select native currency to list on ${key} marketplace.`
+            );
+        }
+
+        setListingOptions((state) => ({
+            ...state,
+            [key]: {
+                ...state[key],
+                listing: checked,
+            },
+        }));
+    };
 
     const formik = useFormik({
         initialValues: {
@@ -65,7 +111,7 @@ export const useSale = () => {
                             "Minimum Bid Amount is required"
                         ),
                 }
-            ),            
+            ),
             buyoutBidAmount: Yup.number("Please enter valid number").when(
                 "saleType",
                 {
@@ -88,7 +134,10 @@ export const useSale = () => {
                         Yup.number("Please enter valid number")
                             .required("Bid Buffer is required")
                             .min(0, "Bid Buffer should not be less than 0")
-                            .max(100, "Bid Buffer should not be greater than 100"),
+                            .max(
+                                100,
+                                "Bid Buffer should not be greater than 100"
+                            ),
                 }
             ),
         }),
@@ -102,8 +151,17 @@ export const useSale = () => {
                 return Toast.error("Not enough Balance to list Item");
             }
             if (values.buyoutBidAmount < values.minimumBidAmount) {
-                return Toast.error("Minimum Bid Amount should not be more than Buyout Amount");
+                return Toast.error(
+                    "Minimum Bid Amount should not be more than Buyout Amount"
+                );
             }
+
+            const selectedMarketplaces = [];
+            Object.keys(listingOptions).map((ele) => {
+                if (listingOptions[ele].listing) {
+                    selectedMarketplaces.push(ele);
+                }
+            });
 
             let result;
             if (values.saleType === SALE_TYPE.LIST) {
@@ -119,7 +177,9 @@ export const useSale = () => {
                         quantity: values.quantity || 1,
                         price: values.price,
                         endListingDate: values.endListingDate,
-                        signMessage
+                        signMessage,
+                        listOnOpenSea,
+                        selectedMarketplaces,
                     })
                 );
             } else if (values.saleType === SALE_TYPE.AUCTION) {
@@ -137,7 +197,7 @@ export const useSale = () => {
                         minimumBidAmount: values.minimumBidAmount,
                         buyoutBidAmount: values.buyoutBidAmount,
                         bidBufferBps: values.bidBufferBps,
-                        signMessage
+                        signMessage,
                     })
                 );
             }
@@ -148,7 +208,8 @@ export const useSale = () => {
             ) {
                 router.push({
                     pathname: PATH_DASHBOARD.explore.collection(
-                        item?.itemCollection
+                        item?.itemCollection,
+                        item?.chainId
                     ),
                     // query: {
                     // 	type: item?.type,
@@ -165,13 +226,20 @@ export const useSale = () => {
     }, [item]);
 
     useEffect(() => {
-        if(!item?.type) return;
+        if (!item?.type) return;
         formik?.setFieldValue("standard", item?.type);
     }, [item]);
+
+    useEffect(() => {
+        setListingOptions(MARKETPLACES_DATA);
+    }, [formik.values.currency]);
 
     return {
         setItem,
         formik,
         item,
+        selectMarketPlaces,
+        listingOptions,
+        setListingOptions,
     };
 };

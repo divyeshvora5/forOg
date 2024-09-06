@@ -1,7 +1,7 @@
 import { NATIVE_CURRENCY_DECIMALS, client } from "@/constant/walletPrefrences";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { NATIVE_TOKEN_ADDRESS, getContract, toTokens } from "thirdweb";
-import { ethers5Adapter } from "thirdweb/adapters/ethers5";
+import { ethers6Adapter } from 'thirdweb/adapters/ethers6'
 import { balanceOf, decimals } from "thirdweb/extensions/erc20"
 import ABI from "@/abi/Token.json";
 
@@ -19,7 +19,7 @@ export const useBalance = ({ chainId, address, wallet }) => {
 
     const provider = useMemo(() => {
         if (!chainId) return null;
-        return ethers5Adapter.provider.toEthers({
+        return ethers6Adapter.provider.toEthers({
             client: client,
             chain: chainId,
         })
@@ -32,7 +32,8 @@ export const useBalance = ({ chainId, address, wallet }) => {
             setLoading(true);
             if (address === NATIVE_TOKEN_ADDRESS) {
                 const result = await provider.getBalance(wallet?.address);
-                const value = toTokens(result, NATIVE_CURRENCY_DECIMALS[chainId?.id])
+                const value = toTokens(result, NATIVE_CURRENCY_DECIMALS[chainId])
+                setRawValue(value);
                 return setBalance(formatter.format(value || 0));
             }
 

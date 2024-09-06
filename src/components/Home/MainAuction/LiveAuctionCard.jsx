@@ -20,9 +20,9 @@ const LiveAuctionCard = ({ item, handleLike, handleOpen }) => {
             },
         });
     };
-    const handleCollectionRoute = () => {
-        router.push(PATH_DASHBOARD.explore.collection(item?.collectionAddress));
-    };
+    // const handleCollectionRoute = () => {
+    //     router.push(PATH_DASHBOARD.explore.collection(item?.collectionAddress));
+    // };
     return (
         <div className="common-product-block">
             <div
@@ -50,10 +50,7 @@ const LiveAuctionCard = ({ item, handleLike, handleOpen }) => {
                         <div className="top-block-product-new">
                             <div className="top-block-product-img-new">
                                 <img
-                                    src={
-                                        item?.collectionLogo ||
-                                        "/images/collection-img.png"
-                                    }
+                                    src={item?.collectionLogo}
                                     alt=""
                                     className="pointer"
                                 ></img>
@@ -77,10 +74,7 @@ const LiveAuctionCard = ({ item, handleLike, handleOpen }) => {
                                 <h4>{item?.name}</h4>
                                 <div className="product-details-profile-new-price">
                                     <img
-                                        src={
-                                            CHAIN_LOGO[item?.chainId] ||
-                                            "../../images/ethe-icon-blue.svg"
-                                        }
+                                        src={CHAIN_LOGO[item?.chainId]}
                                         alt="ethe-img"
                                     ></img>
                                     <div className="product-details-profile-new-price-text">

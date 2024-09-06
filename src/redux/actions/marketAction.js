@@ -32,6 +32,9 @@ import {
     signForCancleOffer,
     signForCollectAuctionPayout,
     signForCollectAuctionToken,
+    signForCollectionCreate,
+    signForCollectionUpdate,
+    signForItemCreate,
     signForListingService,
     signForMakeOffer,
     signForMemberShip,
@@ -50,6 +53,8 @@ import {
 } from "../services/collectionService";
 import { setProgress, setRefetchAction } from "../reducer/marketSlice";
 import { getUserBalance } from "./globalAction";
+import { ZeroAddress } from "ethers";
+import { MARKETPLACES } from "@/hooks/useMarket";
 
 export const creatingListingAction = createAsyncThunk(
     "market/creatingListingAction",
@@ -66,6 +71,8 @@ export const creatingListingAction = createAsyncThunk(
             price,
             endListingDate,
             signMessage,
+            listOnOpenSea,
+            selectedMarketplaces,
         },
         { rejectWithValue, dispatch, getState }
     ) => {
@@ -137,6 +144,17 @@ export const creatingListingAction = createAsyncThunk(
                 endTimestamp: endTimestamp,
                 reserved: false,
             };
+            //testing opensea listing
+            if (selectedMarketplaces.includes(MARKETPLACES.OPENSEA)) {
+                await listOnOpenSea({
+                    itemCollection: collection,
+                    tokenId: tokenId,
+                    price: String(price),
+                    currency: ZeroAddress,
+                    quantity: String(quantity),
+                    endTime: endTimestamp,
+                });
+            }
 
             console.log("testing", payload);
             const result = await addToListing({
@@ -265,7 +283,7 @@ export const cancleListingAction = createAsyncThunk(
         try {
             sign_toast_id = toast.loading("Signing...");
             const signature = await signMessage({
-                message: `Cancelling Listing...: ${listingId}:${account}`,
+                message: `I want to cancle listing with this information: ${listingId}:${account}`,
             });
 
             if (!signature) {
@@ -865,7 +883,7 @@ export const cancleOfferAction = createAsyncThunk(
         try {
             sign_toast_id = toast.loading("Signing...");
             const signature = await signMessage({
-                message: `I want to cancel offer with this information: ${offerId}:${account}`,
+                message: `I want to cancle offer with this information: ${offerId}:${account}`,
             });
 
             if (!signature) {
@@ -875,7 +893,7 @@ export const cancleOfferAction = createAsyncThunk(
             }
             const { data } = await signForCancleOffer({
                 offerId,
-                account,
+                account: wallet?.address,
                 signature,
             });
             toast.dismiss(sign_toast_id);
@@ -1038,11 +1056,39 @@ export const createCollectionAction = createAsyncThunk(
          *  }
          * }
          */
+        let sign_toast_id;
         let optimize_toast_id;
         let upload_toast_id;
         let ipfs_toast_id;
         let load_toast_id;
         try {
+            const { global } = getState();
+            const {
+                walletDetalis: { chainId, account },
+            } = global;
+
+            const signature = await values?.signMessage({
+                message: `I want to create new collection with this information:${account?.toLowerCase()}:${
+                    values?.payload?.name
+                }:${values?.payload?.category}:${chainId}`,
+            });
+            if (!signature) {
+                Toast.error("Signing failed!");
+                toast.dismiss(sign_toast_id);
+                return rejectWithValue("Signing Failed!");
+            }
+
+            const res = await signForCollectionCreate({
+                account,
+                name: values?.payload?.name,
+                category: values?.payload?.category,
+                chainId,
+                signature,
+            });
+            if (!res?.data?.status) {
+                return Toast.error(data.message);
+            }
+            toast.dismiss(sign_toast_id);
             optimize_toast_id = toast.loading("Optimizing Images...");
             const formData = new FormData();
             const lowFile = await resizeFile(
@@ -1107,10 +1153,10 @@ export const createCollectionAction = createAsyncThunk(
             });
             toast.dismiss(load_toast_id);
             if (result) {
-                const { global } = getState();
-                const {
-                    walletDetalis: { chainId, account },
-                } = global;
+                // const { global } = getState();
+                // const {
+                //     walletDetalis: { chainId, account },
+                // } = global;
                 dispatch(
                     getUserBalance({
                         chainId: chainId,
@@ -1127,6 +1173,7 @@ export const createCollectionAction = createAsyncThunk(
             upload_toast_id && toast.dismiss(upload_toast_id);
             ipfs_toast_id && toast.dismiss(ipfs_toast_id);
             load_toast_id && toast.dismiss(load_toast_id);
+            sign_toast_id && toast.dismiss(sign_toast_id);
 
             console.log("err", err);
 
@@ -1138,8 +1185,8 @@ export const createCollectionAction = createAsyncThunk(
 );
 export const collectionUriUpdateAction = createAsyncThunk(
     "market/collectionUriUpdateAction",
-    async (
-        {
+    async (payload, { rejectWithValue, dispatch, getState }) => {
+        const {
             collection,
             signMessage,
             collectionCoverFile,
@@ -1150,9 +1197,8 @@ export const collectionUriUpdateAction = createAsyncThunk(
             ownerAddress,
             wallet,
             chain,
-        },
-        { rejectWithValue, dispatch, getState }
-    ) => {
+            updatedRoyalty,
+        } = payload;
         /**
          * values = {
          * 	fileRatio,
@@ -1168,17 +1214,38 @@ export const collectionUriUpdateAction = createAsyncThunk(
         let sign_toast_id;
         let links_toast_id;
         try {
+            if (
+                updatedRoyalty &&
+                (!Number.isInteger(Number(updatedRoyalty)) ||
+                    updatedRoyalty < 0 ||
+                    updatedRoyalty > 100)
+            ) {
+                Toast.error(
+                    "Invalid input: Royalty must be an integer between 0 and 100"
+                );
+                return;
+            }
             sign_toast_id = toast.loading("Signing...");
             const { global } = getState();
-            const { account } = global;
+            const account = global?.account?.toLowerCase();
             const signature = await signMessage({
-                message: `I want to update my collection :${account?.toLowerCase()}:${
+                message: `I want to update my collection with this information:${account?.toLowerCase()}:${
                     collection?.address
                 }:${collection?.chainId}`,
             });
             if (!signature) {
                 Toast.error("Signing failed!");
-                return;
+                toast.dismiss(sign_toast_id);
+                return rejectWithValue("Signing Failed!");
+            }
+            const { data } = await signForCollectionUpdate({
+                account,
+                itemCollection: collection?.address,
+                chainId: collection?.chainId,
+                signature,
+            });
+            if (!data?.status) {
+                return Toast.error(data.message);
             }
             toast.dismiss(sign_toast_id);
             links_toast_id = toast.loading("Updating links...");
@@ -1290,8 +1357,18 @@ export const collectionUriUpdateAction = createAsyncThunk(
                 chain: chain,
                 type: collection?.type,
             });
+            let royalty;
+            if (updatedRoyalty) {
+                royalty = await setRoyalty({
+                    wallet,
+                    chain,
+                    collectionAddress: collection?.address,
+                    collectionType: collection?.type,
+                    royaltyBps: updatedRoyalty,
+                });
+            }
             toast.dismiss(load_toast_id);
-            if (result) {
+            if (result || royalty) {
                 const { global } = getState();
                 const {
                     walletDetalis: { chainId, account },
@@ -1449,8 +1526,36 @@ export const createSingleNftAction = createAsyncThunk(
         let upload_toast_id;
         let ipfs_toast_id;
         let load_toast_id;
+        let sign_toast_id;
         try {
-            upload_toast_id = toast.loading("Uploading Media To IPFS!");
+            const { global } = getState();
+            const {
+                walletDetalis: { chainId, account },
+            } = global;
+
+            const signature = await values?.signMessage({
+                message: `I want to create new item with this information:${account?.toLowerCase()}:${
+                    values?.payload?.name
+                }:${values?.payload?.collectionAddress}:${chainId}`,
+            });
+            if (!signature) {
+                Toast.error("Signing failed!");
+                toast.dismiss(sign_toast_id);
+                return rejectWithValue("Signing Failed!");
+            }
+
+            const res = await signForItemCreate({
+                account,
+                name: values?.payload?.name,
+                itemCollection: values?.payload?.collectionAddress,
+                chainId,
+                signature,
+            });
+            if (!res?.data?.status) {
+                return Toast.error(data.message);
+            }
+            toast.dismiss(sign_toast_id);
+            // upload_toast_id = toast.loading("Uploading Media To IPFS!");
             let coverImgHash;
 
             let mainFileHash = values?.payload?.mainFile;
@@ -1460,7 +1565,7 @@ export const createSingleNftAction = createAsyncThunk(
                     values?.payload?.mainFile
                 );
 
-                mainFileHash`${process.env.IPFS_GATEWAY}${localIHase}`;
+                mainFileHash = `${process.env.IPFS_GATEWAY}${localIHase}`;
             }
 
             if (
@@ -1507,14 +1612,14 @@ export const createSingleNftAction = createAsyncThunk(
                     thumbnail: thumbnail || "",
                 },
             };
-            ipfs_toast_id = toast.loading("Uploading Metadata To IPFS...");
+            // ipfs_toast_id = toast.loading("Uploading Metadata To IPFS...");
             const ipfsHash = await getIpfsHash(openseadata);
             dispatch(setProgress(getRandom(60, 75)));
             toast.dismiss(ipfs_toast_id);
 
             let tokenUri = `${process.env.IPFS_GATEWAY}${ipfsHash}`;
 
-            load_toast_id = toast.loading("Creating NFT...");
+            // load_toast_id = toast.loading("Creating NFT...");
             const result = await addSingleItem({
                 collectionAddress: values?.payload?.collectionAddress,
                 uri: tokenUri,
@@ -1524,10 +1629,10 @@ export const createSingleNftAction = createAsyncThunk(
             toast.dismiss(load_toast_id);
             dispatch(setProgress(100));
             if (result) {
-                const { global } = getState();
-                const {
-                    walletDetalis: { chainId, account },
-                } = global;
+                // const { global } = getState();
+                // const {
+                //     walletDetalis: { chainId, account },
+                // } = global;
                 dispatch(
                     getUserBalance({
                         chainId: chainId,
@@ -1545,6 +1650,7 @@ export const createSingleNftAction = createAsyncThunk(
             upload_toast_id && toast.dismiss(upload_toast_id);
             ipfs_toast_id && toast.dismiss(ipfs_toast_id);
             load_toast_id && toast.dismiss(load_toast_id);
+            sign_toast_id && toast.dismiss(sign_toast_id);
             console.log("err", err);
             Toast.error("failed to upload image.");
             console.log("uploading image error:", err);
@@ -1569,8 +1675,36 @@ export const createMultipleNftAction = createAsyncThunk(
         let upload_toast_id;
         let ipfs_toast_id;
         let load_toast_id;
+        let sign_toast_id;
         try {
-            upload_toast_id = toast.loading("Uploading Media To IPFS!");
+            const { global } = getState();
+            const {
+                walletDetalis: { chainId, account },
+            } = global;
+
+            const signature = await values?.signMessage({
+                message: `I want to create new item with this information:${account?.toLowerCase()}:${
+                    values?.payload?.name
+                }:${values?.payload?.collectionAddress}:${chainId}`,
+            });
+            if (!signature) {
+                Toast.error("Signing failed!");
+                toast.dismiss(sign_toast_id);
+                return rejectWithValue("Signing Failed!");
+            }
+
+            const res = await signForItemCreate({
+                account,
+                name: values?.payload?.name,
+                itemCollection: values?.payload?.collectionAddress,
+                chainId,
+                signature,
+            });
+            if (!res?.data?.status) {
+                return Toast.error(data.message);
+            }
+            toast.dismiss(sign_toast_id);
+            // upload_toast_id = toast.loading("Uploading Media To IPFS!");
             let coverImgHash;
             let mainFileHash = values?.payload?.mainFile;
 
@@ -1579,7 +1713,7 @@ export const createMultipleNftAction = createAsyncThunk(
                     values?.payload?.mainFile
                 );
 
-                mainFileHash`${process.env.IPFS_GATEWAY}${localIHase}`;
+                mainFileHash = `${process.env.IPFS_GATEWAY}${localIHase}`;
             }
             if (
                 values?.payload?.asset_type === "image" &&
@@ -1625,14 +1759,14 @@ export const createMultipleNftAction = createAsyncThunk(
                 },
             };
             console.log("openseadata", openseadata);
-            ipfs_toast_id = toast.loading("Uploading Metadata To IPFS...");
+            // ipfs_toast_id = toast.loading("Uploading Metadata To IPFS...");
             const ipfsHash = await getIpfsHash(openseadata);
             toast.dismiss(ipfs_toast_id);
             dispatch(setProgress(getRandom(60, 75)));
 
             let tokenUri = `${process.env.IPFS_GATEWAY}${ipfsHash}`;
 
-            load_toast_id = toast.loading("Creating Multiple NFT's...");
+            // load_toast_id = toast.loading("Creating Multiple Collectibles...");
             const result = await addMultiItem({
                 collectionAddress: values?.payload?.collectionAddress,
                 uri: tokenUri,
@@ -1643,17 +1777,17 @@ export const createMultipleNftAction = createAsyncThunk(
             toast.dismiss(load_toast_id);
             dispatch(setProgress(100));
             if (result) {
-                const { global } = getState();
-                const {
-                    walletDetalis: { chainId, account },
-                } = global;
+                // const { global } = getState();
+                // const {
+                //     walletDetalis: { chainId, account },
+                // } = global;
                 dispatch(
                     getUserBalance({
                         chainId: chainId,
                         account: account,
                     })
                 );
-                Toast.success("NFT's Minted Successfully!'");
+                Toast.success("Collectibles Minted Successfully!'");
             } else {
                 dispatch(setProgress(0));
                 Toast.error("Failed Transaction!");
@@ -1661,6 +1795,7 @@ export const createMultipleNftAction = createAsyncThunk(
             }
         } catch (err) {
             dispatch(setProgress(0));
+            sign_toast_id && toast.dismiss(sign_toast_id);
             upload_toast_id && toast.dismiss(upload_toast_id);
             ipfs_toast_id && toast.dismiss(ipfs_toast_id);
             load_toast_id && toast.dismiss(load_toast_id);

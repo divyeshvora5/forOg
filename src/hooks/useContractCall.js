@@ -1,4 +1,11 @@
-import { FAL_IMAGES_DIMENTIONS, FAL_MODELNAME, FAL_SUBSCRIPSION_ROUTE, SUPPORTED_FORMATS, TYPE } from "@/constant";
+import {
+    FAL_IMAGES_DIMENTIONS,
+    FAL_MODELNAME,
+    FAL_SUBSCRIPSION_ROUTE,
+    MARKETPLACE_CONTRACT_ADDRESS,
+    SUPPORTED_FORMATS,
+    TYPE,
+} from "@/constant";
 import {
     createCollectionAction,
     createMultipleNftAction,
@@ -23,7 +30,7 @@ import { AxiosError } from "axios";
 
 export const useCreateCollection = () => {
     const { categorys } = useSelector(globalState);
-    const { wallet, sdk, chain } = useActiveWeb3React();
+    const { wallet, sdk, chain, signMessage } = useActiveWeb3React();
 
     const dispatch = useDispatch();
 
@@ -32,7 +39,9 @@ export const useCreateCollection = () => {
     const [collectionFilePrieview, setCollectionFilePreview] = useState();
     const [collectionCoverFile, setcollectionCoverFilePreview] = useState();
     const [fileRatio, setFileRatio] = useState(1);
-
+    const SUPPORTED_CHAINS = Object.keys(MARKETPLACE_CONTRACT_ADDRESS).map(
+        Number
+    );
     const initialValues = {
         type: TYPE.SINGLE,
         name: "",
@@ -51,24 +60,31 @@ export const useCreateCollection = () => {
     const formik = useFormik({
         initialValues: initialValues,
         validationSchema: Yup.object({
-            name: Yup.string().required("name is required"),
-            symbol: Yup.string().required("symbol is required"),
-            royaltyBps: Yup.number("royaltyBps is number")
-                .min(1, "at least enter 1")
-                .max(100, "max is 100")
-                .required("royaltyBps is required"),
+            name: Yup.string().required("Name is required"),
+            symbol: Yup.string()
+                .matches(/^[A-Z]+$/, "Symbol must contain only alphabets")
+                .required("Symbol is required"),
+            royaltyBps: Yup.number("Royalty should be number")
+                .min(1, "Minimum Royalty is  1")
+                .max(100, "Maximum Royalty is  100")
+                .required("Royalty is required"),
             collectionFile: Yup.mixed()
-                .required("collection image is required")
+                .required("Collection Logo is required")
                 .test("fileType", "Unsupported File Format", (value) =>
                     SUPPORTED_FORMATS.includes(value.type)
                 ),
+            category: Yup.string().required("Category is required"),
             // collectionCoverFile: Yup.mixed().test(
-            // 	"fileType",
-            // 	"Unsupported File Format",
-            // 	(value) => SUPPORTED_FORMATS.includes(value?.type)
+            //     "fileType",
+            //     "Unsupported File Format",
+            //     (value) => SUPPORTED_FORMATS.includes(value?.type)
             // ),
         }),
         onSubmit: async (values, helpers) => {
+            if (!SUPPORTED_CHAINS.includes(chain.id)) {
+                Toast.error("Unsupported Chain Selected.");
+                return;
+            }
             const result = await dispatch(
                 createCollectionAction({
                     chain: chain,
@@ -76,6 +92,7 @@ export const useCreateCollection = () => {
                     fileRatio,
                     payload: values,
                     sdk: sdk,
+                    signMessage,
                 })
             );
             if (result.type === "market/createCollectionAction/fulfilled") {
@@ -135,7 +152,7 @@ export const useCreateItems = () => {
     const {
         walletDetalis: { chainId, account },
     } = useSelector(globalState);
-    const { library, sdk, chain, wallet } = useActiveWeb3React();
+    const { library, sdk, chain, wallet, signMessage } = useActiveWeb3React();
 
     const dispatch = useDispatch();
     const router = useRouter();
@@ -145,7 +162,6 @@ export const useCreateItems = () => {
     const [selectedCollection, setSelectedCollection] = useState();
     const [show, setShow] = useState(false);
     const [imgLoading, setImgLoading] = useState(false);
-
 
     //ai genreted image state
     const [prompt, setPrompt] = useState();
@@ -176,7 +192,7 @@ export const useCreateItems = () => {
                     value: "",
                 },
             ],
-            thumbnail: ""
+            thumbnail: "",
         },
         validationSchema: Yup.object().shape({
             collectionAddress: Yup.string().required(
@@ -211,6 +227,7 @@ export const useCreateItems = () => {
                         payload: values,
                         chain: chain,
                         wallet,
+                        signMessage,
                     })
                 );
             } else if (values.type === TYPE.MULTI) {
@@ -219,6 +236,7 @@ export const useCreateItems = () => {
                         payload: values,
                         chain,
                         wallet,
+                        signMessage,
                     })
                 );
             }
@@ -229,7 +247,8 @@ export const useCreateItems = () => {
                 setTimeout(() => {
                     router.push({
                         pathname: PATH_DASHBOARD.explore.collection(
-                            values.collectionAddress?.toLowerCase()
+                            values.collectionAddress?.toLowerCase(),
+                            chain?.id
                         ),
                         // query: {
                         // type: values.type,
@@ -276,24 +295,24 @@ export const useCreateItems = () => {
     };
 
     const handleFileChange = (e) => {
-        const fileType = e.target.files[0].type.split("/")[0];
+        const fileType = e.target?.files[0]?.type.split("/")[0];
 
-        console.log('fileType', fileType)
+        console.log("fileType", fileType);
 
-        console.log('e.target.files[0]', e.target.files[0])
-        if (e.target.name === "mainFile") {
+        console.log("e.target?.files[0]", e.target?.files[0]);
+        if (e.target?.name === "mainFile") {
             mainFilePreview && URL.revokeObjectURL(mainFilePreview);
-            setMainFilePreview(URL.createObjectURL(e.target.files[0]));
-            formik.setFieldValue("mainFile", e.target.files[0]);
+            setMainFilePreview(URL.createObjectURL(e.target?.files[0]));
+            formik.setFieldValue("mainFile", e.target?.files[0]);
             formik.setFieldValue("asset_type", fileType);
-        } else if (e.target.name === "coverImgFile") {
+        } else if (e.target?.name === "coverImgFile") {
             coverFilePreview && URL.revokeObjectURL(coverFilePreview);
-            setCoverPreview(URL.createObjectURL(e.target.files[0]));
-            formik.setFieldValue("coverImgFile", e.target.files[0]);
+            setCoverPreview(URL.createObjectURL(e.target?.files[0]));
+            formik.setFieldValue("coverImgFile", e.target?.files[0]);
         } else {
             thumbnail && URL.revokeObjectURL(thumbnail);
-            setThumbnail(URL.createObjectURL(e.target.files[0]));
-            formik.setFieldValue('thumbnail', e.target.files[0])
+            setThumbnail(URL.createObjectURL(e.target?.files[0]));
+            formik.setFieldValue("thumbnail", e.target?.files[0]);
         }
     };
 
@@ -317,11 +336,10 @@ export const useCreateItems = () => {
         setSelectedCollection();
     };
 
-
     //aigenreted image logic
 
     const validateAndGetSize = () => {
-        if (imageSize !== 'custom') {
+        if (imageSize !== "custom") {
             return imageSize;
         }
         if (!width || !height) {
@@ -329,14 +347,14 @@ export const useCreateItems = () => {
         }
 
         return { width: Number(width), height: Number(height) };
-    }
+    };
 
     const genrateImage = async () => {
         try {
             const image_size = validateAndGetSize();
 
             if (!image_size || !prompt) return;
-            setImgLoading(true)
+            setImgLoading(true);
 
             // const result = await fal.subscribe(FAL_SUBSCRIPSION_ROUTE, {
             //     input: {
@@ -352,11 +370,11 @@ export const useCreateItems = () => {
             //     },
             // });
 
-            const { data} = await genrateImageService({
+            const { data } = await genrateImageService({
                 prompt: prompt,
                 negative_prompt: negativePrompt,
                 image_size: image_size,
-            })
+            });
 
             const result = data?.data || {};
 
@@ -364,7 +382,7 @@ export const useCreateItems = () => {
 
             if (!file) return;
 
-            if (formik.values.asset_type === 'audio') {
+            if (formik.values.asset_type === "audio") {
                 setThumbnail(result.images[0].url);
                 return formik.setFieldValue("thumbnail", file);
             }
@@ -373,19 +391,16 @@ export const useCreateItems = () => {
 
             formik.setFieldValue("mainFile", file);
 
-
-            console.log('result.images[0].url', result)
+            console.log("result.images[0].url", result);
         } catch (err) {
-            if(err instanceof AxiosError) {
-                return Toast.error(err.response.data?.message)
+            if (err instanceof AxiosError) {
+                return Toast.error(err.response.data?.message);
             }
-            Toast.error(err?.message)
+            Toast.error(err?.message);
         } finally {
             setImgLoading(false);
         }
     };
-
-
 
     // useEffect(() => {
 
@@ -398,7 +413,6 @@ export const useCreateItems = () => {
     //     return () => clearTimeout(timer);
     // }, [prompt]);
 
-
     // useEffect(() => {
     //     if (!negativePrompt) return;
 
@@ -409,7 +423,6 @@ export const useCreateItems = () => {
     //     return () => clearTimeout(timer);
 
     // }, [negativePrompt]);
-
 
     // useEffect(() => {
     //     if (!prompt || imageSize === 'custom') return;
@@ -460,7 +473,7 @@ export const useCreateItems = () => {
         setImageSize,
         setPrompt,
         setNegativePrompt,
-        genrateImage
+        genrateImage,
     };
 };
 
@@ -504,7 +517,7 @@ export const useImportCollection = () => {
             collectionCoverFile: Yup.mixed().test(
                 "fileType",
                 "Unsupported File Format",
-                (value) => SUPPORTED_FORMATS.includes(value?.type)
+                (value) => !value || SUPPORTED_FORMATS.includes(value.type)
             ),
         }),
         onSubmit: async (values, helpers) => {

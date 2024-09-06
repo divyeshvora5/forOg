@@ -8,6 +8,12 @@ export const getUserService = async (address, params = {}) => {
     });
 };
 
+export const getUserFeedService = async (params) => {
+    return await Axios.get("user/feed", {
+        params: params,
+    });
+};
+
 export const getAllCategoryService = async () => {
     return await Axios.get("category");
 };
@@ -64,13 +70,12 @@ export const getAllBlogTagsServices = async (params) => {
 
 export const updateUserService = async (payload) => {
     return await Axios.patch("user", payload, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-            maxContentLength: 50 * 1024 * 1024, // 50MB
-            maxBodyLength: 50 * 1024 * 1024, // 50MB
-        }
-    );
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+        maxContentLength: 50 * 1024 * 1024, // 50MB
+        maxBodyLength: 50 * 1024 * 1024, // 50MB
+    });
 };
 
 export const checkNameUniqueServices = async (payload) => {
@@ -133,8 +138,6 @@ export const getPublicCollectionService = async (params) => {
     });
 };
 
-
-
 export const addNotificationPreference = async (params) => {
     return await Axios.post(`user/user_addNotificationPreference`, params);
 };
@@ -149,4 +152,8 @@ export const addNotificationEmail = async (data) => {
 
 export const removeNotificationEmail = async (data) => {
     return await Axios.post(`user/user_removeNotificationEmail`, data);
+};
+
+export const deleteUserServices = async (payload) => {
+    return await Axios.post("user/delete-user", payload);
 };

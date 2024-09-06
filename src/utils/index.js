@@ -59,17 +59,24 @@ export const ResolvePercentage = (value) => {
     );
 };
 
-export const CountParser = (value, fixTo = 2) => {
-    if (+value < 1000) {
-        if (Number.isInteger(value)) {
-            return value;
-        } else {
-            return Number(value.toFixed(fixTo));
-        }
-    } else if (+value < 1000000) {
-        return (value / 1000).toFixed(1) + "k";
+export const CountParser = (value, fixTo = 2, length = 1) => {
+    const numberValue = Number(value);
+    if (isNaN(numberValue) || numberValue === 0) return 0;
+    if (numberValue >= 1000000000) {
+        let formatted = (numberValue / 1000000000).toFixed(length);
+        return formatted + "B";
+    } else if (numberValue >= 1000000) {
+        let formatted = (numberValue / 1000000).toFixed(length);
+        if (formatted >= 1000) formatted = 999.9;
+        return formatted + "M";
+    } else if (numberValue >= 1000) {
+        let formatted = (numberValue / 1000).toFixed(length);
+        if (formatted >= 1000) formatted = 999.9;
+        return formatted + "k";
     } else {
-        return (value / 1000000).toFixed(1) + "M";
+        return Number.isInteger(numberValue)
+            ? numberValue
+            : Number(numberValue.toFixed(fixTo));
     }
 };
 
@@ -85,19 +92,43 @@ const Axios = axios.create({
     baseURL: process.env.API_URL,
 });
 
-Axios.interceptors.response.use(function(response) {
-    return response;
-}, function(error) {
-    if(error?.response) {
-        if(error.response.status === 403) {
-            localStorage.removeItem('connectedWallet');
+Axios.interceptors.response.use(
+    function (response) {
+        return response;
+    },
+    function (error) {
+        if (error?.response) {
+            if (error.response.status === 403) {
+                localStorage.removeItem("connectedWallet");
+            }
         }
+
+        return Promise.reject(error);
     }
+);
 
-    return Promise.reject(error);
-})
+export { Axios };
 
-export { Axios }
+const SocketAxios = axios.create({
+    baseURL: process.env.SOCKET_URL,
+});
+
+SocketAxios.interceptors.response.use(
+    function (response) {
+        return response;
+    },
+    function (error) {
+        if (error?.response) {
+            if (error.response.status === 403) {
+                localStorage.removeItem("connectedWallet");
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
+
+export { SocketAxios };
 
 export const toWei = (amount, decimals = 18) => {
     try {
@@ -192,6 +223,7 @@ export const getItemDetailsQueryParams = (item) => {
     return {
         itemCollection: item?.itemCollection?.toLowerCase(),
         tokenId: item?.tokenId,
+        chainId: item?.chainId,
     };
 };
 
@@ -305,14 +337,11 @@ export const getEnsDetails = async ({ provider, address, chainId }) => {
                 avtar: ensAvatarUrl,
             };
         } else if ([8453].includes(chainId)) {
-            const provider = new ethers.providers.JsonRpcProvider(
-                RPC_URLS[8453],
-                {
-                    name: "Base Mainnet",
-                    chainId: 8453,
-                    ensAddress: "0xeCBaE6E54bAA669005b93342E5650d5886D54fc7",
-                }
-            );
+            const provider = new ethers.JsonRpcProvider(RPC_URLS[8453], {
+                name: "Base Mainnet",
+                chainId: 8453,
+                ensAddress: "0xeCBaE6E54bAA669005b93342E5650d5886D54fc7",
+            });
             let ensName = await provider.lookupAddress(address);
             let ensAvatarUrl = "";
 
@@ -394,4 +423,17 @@ export const convertSecondsToDate = (seconds) => {
     if (!seconds) return;
     const date = new Date(+seconds * 1000);
     return date;
+};
+
+export const getBonusImage = (address, image) => {
+    switch (address) {
+        case "0x66f8a148da90d3b028abe9e83e446a35a4da7d75":
+            return "/leaderboardLogo/HeadheartTransparent.svg";
+        case "0xa35a6162eaecddcf571aeaa8edca8d67d815cee4":
+            return "/leaderboardLogo/HexToysLogo.svg";
+        case "Opensea":
+            return "/leaderboardLogo/OpenseaLogo.svg";
+        default:
+            return image;
+    }
 };

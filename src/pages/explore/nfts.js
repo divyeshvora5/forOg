@@ -46,7 +46,7 @@ const exploreNFTS = () => {
     ];
     return (
       <>
-        <PageTitle title={"NFT's"} />
+        <PageTitle title={"Collectibles"} />
         <CommonPageBlockPad className='no-container-padding dark-mode-body'>
           <div className='graphics-inner-shape'>
             {/* <img src={'../../images/graphics-block-inner.png'} alt='graphics-img'></img> */}
@@ -59,7 +59,7 @@ const exploreNFTS = () => {
           </div>
           <div className='explore-block-main'>
             <div className='common-title-page text-center-space'>
-              <h1>Explore Items</h1>
+              <h1>Explore Collectibles</h1>
             </div>
             <div className='filter-block-data-block'>
               <div className='filter-block-data-block-left'>

@@ -1129,7 +1129,7 @@ const itemDetail = () => {
           </div>
           <div className='traning-nft-block'>
             <div className='common-title-block'>
-              <h2>More from this collection</h2>
+              <h2>More From This Collection</h2>
               <Link href='{}'>
                 <span>Explore</span>
                 {/* <img

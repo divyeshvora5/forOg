@@ -8,9 +8,6 @@ const TopSeller = () => {
         <>
             <div className="top-seller-block">
                 <Container>
-                    <div className="common-title-block text-center">
-                        <h2>Top Collectors</h2>
-                    </div>
                     {loading ? (
                         <>
                             <div className="d-flex justify-content-center">
@@ -25,6 +22,9 @@ const TopSeller = () => {
                         </>
                     ) : (
                         <>
+                            <div className="common-title-block text-center">
+                                <h2>Top Collectors</h2>
+                            </div>
                             <div className="top-seller-block-main justify-content-center">
                                 {topSellers?.map((user, index) => (
                                     <TopSellerCard

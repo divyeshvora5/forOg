@@ -10,6 +10,7 @@ import { COLLECTION_EVENT_BUTTONS } from "./CollectionEventButtons";
 import { Spinner } from "react-bootstrap";
 import { Button } from "@/styles/pages/main.style";
 import { PATH_DASHBOARD } from "@/routes/paths";
+import ImageLoader from "../Common/ImageLoader";
 
 const CollectionActivityTab = ({ itemCollection = "", chainId = null }) => {
     const { push } = useRouter();
@@ -28,6 +29,7 @@ const CollectionActivityTab = ({ itemCollection = "", chainId = null }) => {
             pathname: PATH_DASHBOARD.item.details,
             query: {
                 itemCollection: item?.itemCollection,
+                chainId: item?.chainId,
                 tokenId: item?.tokenId,
             },
         });
@@ -119,8 +121,7 @@ const CollectionActivityTab = ({ itemCollection = "", chainId = null }) => {
                         </>
                     ) : !items?.length > 0 ? (
                         <>
-                            <div className="d-flex justify-content-center">
-                            </div>
+                            <div className="d-flex justify-content-center"></div>
                         </>
                     ) : (
                         <>
@@ -169,13 +170,23 @@ const CollectionActivityTab = ({ itemCollection = "", chainId = null }) => {
                                         className="profile-img-block pointer"
                                         onClick={() => itemRouteHandler(event)}
                                     >
-                                        <img
+                                        <ImageLoader
+                                            src={event?.image}
+                                            alt="item-img"
+                                            style={{
+                                                width: "60px",
+                                                height: "60px",
+                                                borderRadius: "10px",
+                                                objectFit: "cover",
+                                            }}
+                                        />
+                                        {/* <img
                                             src={
                                                 event?.image ||
                                                 "../../images/item-img.png"
                                             }
                                             alt="item-img"
-                                        ></img>
+                                        ></img> */}
                                         <div className="text-img-block">
                                             <h3>{event?.itemName || ""}</h3>
                                             <p>
@@ -213,8 +224,9 @@ const CollectionActivityTab = ({ itemCollection = "", chainId = null }) => {
                                                         }
                                                         alt="chainLogo"
                                                     />
-                                                    <h3>{event?.price}
-                                                    {/* {" "}{event?.symbol} */}
+                                                    <h3>
+                                                        {event?.price}
+                                                        {/* {" "}{event?.symbol} */}
                                                     </h3>
                                                 </>
                                             )}

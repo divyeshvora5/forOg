@@ -13,6 +13,7 @@ const ImageLoader = ({
     mediaRenderer = true,
     visualizer = false,
     thumbnail = "",
+    imageClassProps = "",
 }) => {
     //State
     const [imageLoaded, setImageLoaded] = useState(false);
@@ -38,6 +39,7 @@ const ImageLoader = ({
                         client={client}
                         src={src || thumbnail}
                         style={style}
+                        controls={true}
                         // poster="/192.png"
                         // onPlay={handleAudioPlay} // Handle play event
                         // onPause={handleAudioPause} // Handle pause event
@@ -55,8 +57,13 @@ const ImageLoader = ({
                         src={src}
                         alt={alt}
                         onLoad={handleImageLoad}
-                        className={imageLoaded ? "fade-in" : ""}
+                        className={
+                            imageLoaded
+                                ? `fade-in ${imageClassProps}`
+                                : `${imageClassProps}`
+                        }
                         onClick={click}
+                        style={style}
                     />
                     <div className={!imageLoaded ? "loading-animation" : ""} />
                 </div>

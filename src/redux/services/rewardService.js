@@ -29,9 +29,19 @@ export const collectAchievementService = async (payload) => {
 };
 
 export const getAllAchievementsService = async (params) => {
-    return await Axios.get("reward/all-achievements", {
+    return await Axios.get("reward/achievement", {
         params: params,
     });
 };
 
+export const getAllBonusTypesService = async (params) => {
+    return await Axios.get("reward/all-bonus-types", {
+        params: params,
+    });
+};
 
+export const getBuyPointCollectionsService = async (params) => {
+    return await Axios.get("reward/buy-points-collections", {
+        params: params,
+    });
+};

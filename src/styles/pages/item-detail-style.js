@@ -16,7 +16,7 @@ export const ItemMian = styled.div`
     padding: 0px 26px;
     @media screen and (max-width: 991px) {
       width: 100%;
-      padding: 0px 15px 25px;
+      padding: 0px 25px 25px;
     }
     img {
       width: 100%;
@@ -164,6 +164,12 @@ export const ItemMian = styled.div`
           line-height: 42px;
           font-weight: bold;
           margin-bottom: 10px;
+          @media screen and (max-width: 991px) {
+            font-size: 28px;
+          }
+          @media screen and (max-width: 767px) {
+            font-size: 26px;
+          }
         }
         p {
           font-size: 13px;
@@ -175,9 +181,16 @@ export const ItemMian = styled.div`
       .timing-block-current {
         display: flex;
         margin: 0px -7px 40px;
+        @media screen and (max-width: 767px) {
+          flex-wrap: wrap;
+        }
         .time-line-block {
           padding: 0px 7px;
           width: 50%;
+          @media screen and (max-width: 767px) {
+            width: 100%;
+            padding: 0px 7px 15px;
+          }
           .time-line-block-inner {
             padding: 15px;
             border-radius: 10px;
@@ -210,6 +223,9 @@ export const ItemMian = styled.div`
         .current-bid-block {
           width: 50%;
           padding: 0px 7px;
+          @media screen and (max-width: 767px) {
+            width: 100%;
+          }
           h3 {
             padding: 15px;
             border-radius: 10px;
@@ -579,6 +595,9 @@ export const ItemMian = styled.div`
           &.new-table-block {
             height: 320px;
             padding: 0px;
+            @media screen and (max-width: 767px) {
+              height: auto;
+            }
             table {
               width: 100%;
               /* border: 1px solid #e1e1e1; */
@@ -586,6 +605,10 @@ export const ItemMian = styled.div`
             thead {
               th {
                 width: 16.66%;
+                @media screen and (max-width: 767px) {
+                  white-space: nowrap;
+                  width: auto;
+                }
                 &.th-center {
                   text-align: center;
                 }
@@ -646,7 +669,7 @@ export const ItemMian = styled.div`
                 padding: 11px 24px;
                 @media screen and (max-width: 767px) {
                   font-size: 14px;
-                  padding: 11px;
+                  padding: 11px 8px;
                 }
               }
             }

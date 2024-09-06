@@ -197,8 +197,9 @@ const OfferSectionButtons = () => {
         };
     });
 
+
     const CancelOffer = () => {
-        if (selectedItem?.from === account?.toLowerCase()) {
+        if (selectedItem?.lister === account?.toLowerCase()) {
             return (
                 <div className="button-block-tabs-inner">
                     <Button

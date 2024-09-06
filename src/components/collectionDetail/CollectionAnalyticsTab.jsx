@@ -1,4 +1,9 @@
-import { Button, CommonProductBLock } from "@/styles/pages/main.style";
+import {
+    AnalyticsButton,
+    Button,
+    CommonProductBLock,
+    GradientBorderButton,
+} from "@/styles/pages/main.style";
 import React, { useState } from "react";
 import { Accordion, ProgressBar, Spinner, Table } from "react-bootstrap";
 import {
@@ -42,6 +47,7 @@ const CollectionAnalyticsTab = ({ collectionDetails = {} }) => {
     const {
         loading: priceLoading,
         data: priceData,
+        payload: pricePayload,
         handleTimeChange: handleTimeChangePrice,
     } = usePriceDistributionChart({
         itemCollection: collectionDetails?.address,
@@ -51,6 +57,7 @@ const CollectionAnalyticsTab = ({ collectionDetails = {} }) => {
     const {
         loading: floorLoading,
         data: floorData,
+        payload: floorPayload,
         handleTimeChange: handleTimeChangeFloor,
     } = useFloorAnalyticsChart({
         itemCollection: collectionDetails?.address,
@@ -90,7 +97,13 @@ const CollectionAnalyticsTab = ({ collectionDetails = {} }) => {
             case ChartTypes[0]:
                 return <LineChart data={floorData} loading={floorLoading} />;
             case ChartTypes[1]:
-                return <CandleChart data={floorData} loading={floorLoading} />;
+                return (
+                    <CandleChart
+                        data={floorData}
+                        loading={floorLoading}
+                        collectionName={collectionDetails?.name}
+                    />
+                );
             case ChartTypes[2]:
                 return <ScatterChart data={floorData} loading={floorLoading} />;
             default:
@@ -103,55 +116,77 @@ const CollectionAnalyticsTab = ({ collectionDetails = {} }) => {
             <div className="filter-block-data-block justify-content-center">
                 {/* <div className="filter-block-data-block-left">
                 </div> */}
-                <div
-                    className="filter-block-data-block-right"
-                    style={{ width: "70%" }}
-                >
+                <div className="filter-block-data-block-right">
                     <div className="left-activity-tab">
                         <div className="left-activity-tab-block">
                             <h3 className="title-activity-tab">Floor Price</h3>
-                            <div>
-                                {ChartTypes.map((item, index) => (
-                                    <button
-                                        type="button"
-                                        key={index}
-                                        className="btn"
-                                        onClick={() => handleChart(item)}
-                                    >
-                                        {item}
-                                    </button>
-                                ))}
+                            <div className="d-flex justify-content-between align-items-center w-full flex-column flex-sm-row">
+                                <div className="d-flex justify-content-center align-items-center">
+                                    {ChartTypes.map((item, index) => (
+                                        <AnalyticsButton
+                                            type="button"
+                                            key={index}
+                                            className={`btn mx-1 mx-lg-2 px-3 px-lg-4 my-2 border-dark-button ${
+                                                currentChart === item
+                                                    ? "selected"
+                                                    : ""
+                                            }`}
+                                            onClick={() => handleChart(item)}
+                                        >
+                                            {item}
+                                        </AnalyticsButton>
+                                    ))}
+                                </div>
+                                <div className="d-flex justify-content-center align-items-center">
+                                    {TIME_FILTER_BUTTON?.map((item, index) => (
+                                        <AnalyticsButton
+                                            type="button"
+                                            onClick={() =>
+                                                handleTimeChangeFloor(
+                                                    item.value
+                                                )
+                                            }
+                                            key={index}
+                                            className={`btn mx-1 mx-lg-2 px-3 px-lg-4 my-2 border-dark-button ${
+                                                floorPayload?.type == item.value
+                                                    ? "selected"
+                                                    : ""
+                                            }`}
+                                        >
+                                            {item.label}
+                                        </AnalyticsButton>
+                                    ))}
+                                </div>
                             </div>
-                            {TIME_FILTER_BUTTON?.map((item, index) => (
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        handleTimeChangeFloor(item.value)
-                                    }
-                                    key={index}
-                                    className="btn"
-                                >
-                                    {item.label}
-                                </button>
-                            ))}
                             {tabRenderer(currentChart)}
                         </div>
                         <div className="left-activity-tab-block">
                             <h3 className="title-activity-tab">
                                 Price Distribution
                             </h3>
-                            {TIME_FILTER_BUTTON?.map((item, index) => (
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        handleTimeChangePrice(item.value)
-                                    }
-                                    key={index}
-                                    className="btn"
-                                >
-                                    {item.label}
-                                </button>
-                            ))}
+                            <div className="d-flex justify-content-end align-items-center w-full flex-column flex-sm-row">
+                                <div className="d-flex justify-content-center align-items-center">
+                                    {TIME_FILTER_BUTTON?.map((item, index) => (
+                                        <AnalyticsButton
+                                            type="button"
+                                            onClick={() =>
+                                                handleTimeChangePrice(
+                                                    item.value
+                                                )
+                                            }
+                                            key={index}
+                                            className={`btn mx-1 mx-lg-2 px-3 px-lg-4 my-2 border-dark-button ${
+                                                pricePayload?.type == item.value
+                                                    ? "selected"
+                                                    : ""
+                                            }`}
+                                        >
+                                            {item.label}
+                                        </AnalyticsButton>
+                                    ))}
+                                </div>
+                            </div>
+
                             {!priceLoading ? (
                                 priceData?.timePeriod?.length > 0 ? (
                                     <PriceDistributionChart
@@ -195,26 +230,29 @@ const CollectionAnalyticsTab = ({ collectionDetails = {} }) => {
                             <h3 className="title-activity-tab">
                                 Owners (top 100)
                             </h3>
-                            <div className="btn-showing-block">
-                                <p> Showing:</p>
-                                {[10, 50, 100].map((limitPerPage, i) => (
-                                    <button
-                                        key={i}
-                                        className={`btn ${
-                                            topOwnersLimit === limitPerPage
-                                                ? "selected"
-                                                : "limitButton"
-                                        }`}
-                                        onClick={() =>
-                                            handleLimitChangeTopOwners(
-                                                limitPerPage
-                                            )
-                                        }
-                                    >
-                                        {limitPerPage}
-                                    </button>
-                                ))}
+                            <div className="search-select justify-content-end">
+                                <div className="btn-showing-block">
+                                    <p> Showing:</p>
+                                    {[10, 50, 100].map((limitPerPage, i) => (
+                                        <button
+                                            key={i}
+                                            className={`btn ${
+                                                topOwnersLimit === limitPerPage
+                                                    ? "selected"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                handleLimitChangeTopOwners(
+                                                    limitPerPage
+                                                )
+                                            }
+                                        >
+                                            {limitPerPage}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
+
                             <Table>
                                 <thead>
                                     <tr>
@@ -271,19 +309,16 @@ const CollectionAnalyticsTab = ({ collectionDetails = {} }) => {
                                                         <td>
                                                             <div className="profile-img-block diff-img-radius">
                                                                 <span>
-                                                                    {index + 1}#
+                                                                    #{index + 1}
                                                                 </span>
                                                                 <img
-                                                                    src={
-                                                                        image ||
-                                                                        "../../images/item-img.png"
-                                                                    }
+                                                                    src={image || "/images/user.svg"}
                                                                     alt="item-img"
                                                                 ></img>
                                                                 <div className="text-img-block">
                                                                     <h3>
                                                                         {name ||
-                                                                            "NoName"}
+                                                                            "unKnown"}
                                                                     </h3>
                                                                 </div>
                                                             </div>

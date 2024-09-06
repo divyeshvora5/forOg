@@ -1,36 +1,110 @@
 import { PublicProfile } from "@/components/PublicProfile/PublicProfileProvider";
 import CollectionDetailComponent from "@/components/collectionDetail/CollectionDetailComponent";
-import { FRONT_END_DOMAIN } from "@/constant";
-
-
+import { FRONT_END_DOMAIN, RPC_URLS } from "@/constant/ogConstant";
+import { getOgCollectionService } from "@/redux/services/ogService";
+import { Contract, ethers } from "ethers";
+import SINGLEABI from "@/abi/TesseractXSingleNFT.json"
+import MULTIABI from "@/abi/TesseractXMultipleNFT.json"
+import React from "react";
 
 export async function getServerSideProps(context) {
-  // Fetch data for the specific page
+    const { itemCollection } = context.params;
+    const [address, chainId] = itemCollection.split("-");
 
-  const { itemCollection } = context.params; // Access the route parameter `id`
-  console.log('itemCollection', itemCollection)
+    try {
+        const { data } = await getOgCollectionService({
+            itemCollection: address,
+            chainId: chainId,
+        });
+        const {
+            name = null,
+            description = "",
+            mediumLogo = "",
+            coverUrl = "",
+            floorPrice = "",
+            floorSymbol = "",
+            tradingVolume = "",
+            totalItemCount = "",
+            totalOwners = "",
+            creatorName = "",
+            chainId: chain = "",
+        } = data?.collectionDetails || {};
 
-  //TO DO API CALL FOR COLLECTION DETAILS
+        let royalties = "";
 
-  //TO DO ADD TITLE AND IMNAG ETC IN OG URL QUERY
-  const title = 'Test';
-  const ogImageUrl = `${FRONT_END_DOMAIN}/api/og?title=${encodeURIComponent(title)}&imageUrl=${encodeURIComponent('https://d17ha18jyelis7.cloudfront.net/collections/originals/16395541-68bd-4f66-a581-6528fb9ffbf4-1705050528582')}`;
-  return {
-    props: {
-      ogData: {
-          url: `${FRONT_END_DOMAIN}/explore/collection/0x49a708fd428319b543279826d9eadc9eab4ad888` ,
-          imgUrl: ogImageUrl,
-          title: title
-      },
-    },
-  };
+        if (RPC_URLS[chainId]) {
+
+            try {
+                const abi = data?.collectionDetails === "single" ? SINGLEABI : MULTIABI
+                const provider = new ethers.JsonRpcProvider(RPC_URLS[chainId]);
+                const contract = new Contract(data?.collectionDetails?.address, abi, provider);
+                const royalty = await contract.getDefaultRoyaltyInfo();
+                if (royalty?.length) {
+                    royalties = Number(royalty[1]) / 100
+                }
+            } catch (err) {
+                console.log("[RoyeltyErr]", err);
+            }
+
+        }
+
+        const ogImageUrl = `${FRONT_END_DOMAIN}/api/og/collection?name=${encodeURIComponent(
+            name || ""
+        )}&imageUrl=${encodeURIComponent(
+            mediumLogo
+        )}&coverUrl=${encodeURIComponent(
+            coverUrl || ""
+        )}&floorPrice=${encodeURIComponent(
+            floorPrice || ""
+        )}&floorSymbol=${encodeURIComponent(
+            floorSymbol || ""
+        )}&tradingVolume=${encodeURIComponent(
+            tradingVolume || ""
+        )}&totalItemCount=${encodeURIComponent(
+            totalItemCount || ""
+        )}&totalOwners=${encodeURIComponent(
+            totalOwners || ""
+        )}&creatorName=${encodeURIComponent(
+            creatorName || ""
+        )}&royalties=${encodeURIComponent(
+            royalties
+        )}&chainId=${encodeURIComponent(chain || "")}`;
+
+
+
+
+        return {
+            props: {
+                ogData: {
+                    url: `${FRONT_END_DOMAIN}/explore/collection/${itemCollection}`,
+                    imgUrl: ogImageUrl,
+                    title: name,
+                    description: description,
+                },
+            },
+        };
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        return {
+            props: {
+                ogData: {
+                    url: "",
+                    imgUrl: "",
+                    title: "",
+                    description: "Failed to fetch data",
+                },
+                error: "Failed to fetch data.",
+            },
+        };
+    }
 }
 
-const Index = ({ogData}) => {
+const Index = () => {
+
     return (
         <>
             <PublicProfile>
-                <CollectionDetailComponent />;
+                <CollectionDetailComponent />
             </PublicProfile>
         </>
     );

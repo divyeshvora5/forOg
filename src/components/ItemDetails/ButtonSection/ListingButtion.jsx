@@ -52,7 +52,7 @@ const ListingButtion = () => {
 				setLoading(false);
 			}
 		})();
-	}, [itemDetails]);
+	}, [itemDetails, chain]);
 
 	return (
 		<div className="button-block-tabs-inner">

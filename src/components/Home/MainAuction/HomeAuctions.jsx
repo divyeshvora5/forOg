@@ -2,6 +2,7 @@ import MainAuction from "./MainAuction";
 import LiveAuctions from "./LiveAuctions";
 import { useHomeAuction } from "@/hooks/useHome";
 import RecentlySoldItems from "../RecentlySoldItems/RecentlySoldItems";
+import TrendingCollections from "../TrendingCollections/TrendingCollections";
 
 const HomeAuctions = () => {
     const { auctions, loading, fetchAuctions } = useHomeAuction();
@@ -13,6 +14,7 @@ const HomeAuctions = () => {
                 loading={loading}
                 fetchAuctions={fetchAuctions}
             />
+            <TrendingCollections />
             <RecentlySoldItems />
             <LiveAuctions
                 items={auctions}

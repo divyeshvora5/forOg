@@ -12,6 +12,7 @@ import moment from "moment";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { useRouter } from "next/router";
 import { CHAIN_LOGO } from "@/constant";
+import ImageLoader from "../Common/ImageLoader";
 
 const UserOffersTab = ({
     ownerAddress,
@@ -32,11 +33,12 @@ const UserOffersTab = ({
             selectedOfferType,
         });
     const itemRouteHandler = (item) => {
-        if(!item?.itemCollection || !item.tokenId) return;
+        if (!item?.itemCollection || !item.tokenId) return;
         push({
             pathname: PATH_DASHBOARD.item.details,
             query: {
                 itemCollection: item?.itemCollection,
+                chainId: item?.chainId,
                 tokenId: item?.tokenId,
             },
         });
@@ -87,13 +89,23 @@ const UserOffersTab = ({
                                     >
                                         <td>
                                             <div className="profile-img-block">
-                                                <img
+                                                <ImageLoader
+                                                    src={item?.image}
+                                                    alt="item-img"
+                                                    style={{
+                                                        width: "60px",
+                                                        height: "60px",
+                                                        borderRadius: "10px",
+                                                        objectFit: "cover",
+                                                    }}
+                                                />
+                                                {/* <img
                                                     src={
                                                         item?.image ||
                                                         "../../images/item-img.png"
                                                     }
                                                     alt="item-img"
-                                                ></img>
+                                                ></img> */}
                                                 <div className="text-img-block">
                                                     <h3>{item?.name || ""}</h3>
                                                     <p>
@@ -119,13 +131,24 @@ const UserOffersTab = ({
                                         </td>
                                         <td>
                                             <div className="puls-block-flex">
-                                            {/* <img src={CHAIN_LOGO[chainId]} alt='chainLogo' /> {CHAIN_SYMBOL[chainId]} */}
+                                                {/* <img src={CHAIN_LOGO[chainId]} alt='chainLogo' /> {CHAIN_SYMBOL[chainId]} */}
 
                                                 <div className="puls-block-flex-inner">
-                                                <img src={CHAIN_LOGO[item?.chainId]} alt='chainLogo' />
+                                                    <img
+                                                        src={
+                                                            CHAIN_LOGO[
+                                                                item?.chainId
+                                                            ]
+                                                        }
+                                                        alt="chainLogo"
+                                                    />
                                                     <h3>{item?.price}</h3>
                                                 </div>
-                                                <p>{usdParser(item?.usdPrice || 0)}</p>
+                                                <p>
+                                                    {usdParser(
+                                                        item?.usdPrice || 0
+                                                    )}
+                                                </p>
                                             </div>
                                         </td>
                                         <td

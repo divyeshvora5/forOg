@@ -23,14 +23,17 @@ const popularCollectionsPage = () => {
         timePeriodChange,
         handlePageChange,
         handleSearch,
+        handleLimitChange,
     } = usePopularCollection();
     const router = useRouter();
 
-    const handleRouteChange = (collection) => {
+    const handleRouteChange = (collection, chainId) => {
         router.push({
-            pathname: PATH_DASHBOARD.explore.collection(collection),
+            pathname: PATH_DASHBOARD.explore.collection(collection, chainId),
         });
     };
+
+    const limits = [10, 50, 100];
 
     return (
       <>
@@ -83,6 +86,19 @@ const popularCollectionsPage = () => {
                 </div>
                 {/* </form> */}
               </div>
+
+              {/* <div className='btn-showing-block'>
+                <p> Showing:</p>
+                {limits.map((limitPerPage, i) => (
+                  <button
+                    key={i}
+                    className={limit === limitPerPage ? 'selected' : 'limitButton'}
+                    onClick={() => handleLimitChange(limitPerPage)}>
+                    {limitPerPage}
+                  </button>
+                ))}
+              </div> */}
+
               <Select
                 name='colors'
                 options={TimePeriod}
@@ -91,6 +107,19 @@ const popularCollectionsPage = () => {
                 defaultValue={TimePeriod[1]}
                 onChange={timePeriodChange}
               />
+            </div>
+            <div className='search-select search-select-custom'>
+              <div className='btn-showing-block'>
+                <p> Showing:</p>
+                {limits.map((limitPerPage, i) => (
+                  <button
+                    key={i}
+                    className={limit === limitPerPage ? 'selected' : 'limitButton'}
+                    onClick={() => handleLimitChange(limitPerPage)}>
+                    {limitPerPage}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className='ranking-table-block'>
               <div className='ranking-table-block'>
@@ -143,7 +172,7 @@ const popularCollectionsPage = () => {
                         ) => (
                           <tr
                             key={index}
-                            onClick={() => handleRouteChange(address)}
+                            onClick={() => handleRouteChange(address, chainId)}
                             style={{
                               cursor: 'pointer'
                             }}>
@@ -151,7 +180,7 @@ const popularCollectionsPage = () => {
                             <td>
                               <div className='collection-name'>
                                 <div className='collection-profile'>
-                                  <img src={image || '../../images/collection-img.png'} alt='product-img'></img>
+                                  <img src={image} alt='img'></img>
                                   {/* <div className="verify-dots">
                                                                     <img
                                                                         src={
@@ -195,11 +224,11 @@ const popularCollectionsPage = () => {
                             <td>{sales}</td>
                             <td>
                               <div className='total-volume-block'>
-                                <img src={CHAIN_LOGO[chainId]} alt='icon-img'></img>
+                                <img src={CHAIN_LOGO[chainId]} alt='img'></img>
                                 <p>{CountParser(totalVolume, 4)}</p>
                               </div>
                             </td>
-                            <td>{owners}</td>
+                            <td>{CountParser(owners,_,2)}</td>
                             <td>{CountParser(supply, 4)}</td>
                           </tr>
                         )

@@ -1,24 +1,53 @@
 import CommonGraphics from "@/components/Common/commonGraphics/CommonGraphics";
+import { FAQ_WITH_TITLE } from "@/components/faq/faq";
 import { CommonPageBlockPad } from "@/styles/pages/profile-page";
 import React from "react";
 import { Accordion, Container } from "react-bootstrap";
 
 const faqPage = () => {
     return (
-      <>
-        <CommonPageBlockPad className='dark-mode-body'>
-          <CommonGraphics />
-          <Container>
-            <div className='help-center-block'>
-              <div className='help-center-block-title'>
-                <h2>Frequently Ask questions</h2>
-                <p>
-                  Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laborum obcaecati dignissimos quae quo ad
-                  iste ipsum officiis deleniti asperiores sit.
-                </p>
-              </div>
-              <div className='faq-main-block'>
-                <Accordion defaultActiveKey='0'>
+        <>
+            <CommonPageBlockPad className="dark-mode-body">
+                <CommonGraphics />
+                <Container>
+                    <div className="help-center-block">
+                        <div className="help-center-block-title">
+                            <h2>Frequently Asked Questions</h2>
+                            {/* <p>
+                                Lorem ipsum dolor sit amet, consectetur
+                                adipisicing elit. Laborum obcaecati dignissimos
+                                quae quo ad iste ipsum officiis deleniti
+                                asperiores sit.
+                            </p> */}
+                        </div>
+                        <div className="faq-main-block">
+                            {FAQ_WITH_TITLE.map((item, index) => (
+                                <>
+                                    <h4 style={{ margin: "0.75rem 0" }}>
+                                        {item.title}
+                                    </h4>
+                                    {item.questions.map((question, qIndex) => (
+                                        <Accordion
+                                            key={qIndex}
+                                            defaultActiveKey="0"
+                                        >
+                                            <Accordion.Item
+                                                eventKey={`${index}-${qIndex}`}
+                                            >
+                                                <Accordion.Header>
+                                                    Q{question?.number}
+                                                    {": "}
+                                                    {question.question}
+                                                </Accordion.Header>
+                                                <Accordion.Body>
+                                                    {question.answer}
+                                                </Accordion.Body>
+                                            </Accordion.Item>
+                                        </Accordion>
+                                    ))}
+                                </>
+                            ))}
+                            {/* <Accordion defaultActiveKey='0'>
                   <Accordion.Item eventKey='0'>
                     <Accordion.Header>What is MiNFT ?</Accordion.Header>
                     <Accordion.Body>
@@ -64,12 +93,12 @@ const faqPage = () => {
                       </p>
                     </Accordion.Body>
                   </Accordion.Item>
-                </Accordion>
-              </div>
-            </div>
-          </Container>
-        </CommonPageBlockPad>
-      </>
+                </Accordion> */}
+                        </div>
+                    </div>
+                </Container>
+            </CommonPageBlockPad>
+        </>
     );
 };
 

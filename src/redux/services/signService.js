@@ -52,3 +52,14 @@ export const signForMemberShip = async (payload) => {
 export const signForWalletConnect = async (payload) => {
 	return Axios.post("sign/sign-walletconnect", payload);
 };
+
+export const signForCollectionUpdate = async (payload) => {
+	return Axios.post("sign/sign-collection-update", payload);
+};
+
+export const signForCollectionCreate = async (payload) => {
+	return Axios.post("sign/sign-collection-create", payload);
+};
+export const signForItemCreate = async (payload) => {
+	return Axios.post("sign/sign-item-create", payload);
+};

@@ -9,7 +9,6 @@ import { PATH_DASHBOARD } from "@/routes/paths";
 import BidModel from "@/components/ItemDetails/Model/BidModel";
 import RecentlySoldItemsCard from "./RecentlySoldItemsCard";
 
-
 const liveslider = {
     dots: false,
     arrow: false,
@@ -73,30 +72,38 @@ const RecentlySoldItems = () => {
     const { handleLike } = useLikeItem();
 
     return (
-      <div className='live-auction-block'>
-        <Container>
-          <div className='common-title-block mb-0'>
-            <h2>Recently Sold</h2>
-          </div>
-        </Container>
-        {loading ? (
-          <>
-            <div className='d-flex justify-content-center'>
-              <Spinner animation='border' size='lg' />
-            </div>
-          </>
-        ) : !items?.length > 0 ? (
-          <>{/* <div className='d-flex justify-content-center'>No Live Auctions Found!</div> */}</>
-        ) : (
-          <>
-            <CommonProductBLock>
-              {/* {true ? ( */}
-              <Slider {...liveslider}>
-                {items?.map((ele, index) => (
-                  <RecentlySoldItemsCard item={ele} key={index} style={{ width: '20%' }} handleLike={handleLike} />
-                ))}
-              </Slider>
-              {/* ) : (
+        <div className="live-auction-block diff-padding-block">
+            {loading ? (
+                <>
+                    <div className="d-flex justify-content-center">
+                        <Spinner animation="border" size="lg" />
+                    </div>
+                </>
+            ) : !items?.length > 0 ? (
+                <>
+                    {/* <div className='d-flex justify-content-center'>No Live Auctions Found!</div> */}
+                </>
+            ) : (
+                <>
+                    {" "}
+                    <Container>
+                        <div className="common-title-block mb-0">
+                            <h2>Recently Sold</h2>
+                        </div>
+                    </Container>
+                    <CommonProductBLock>
+                        {/* {true ? ( */}
+                        <Slider {...liveslider}>
+                            {items?.map((ele, index) => (
+                                <RecentlySoldItemsCard
+                                    item={ele}
+                                    key={index}
+                                    style={{ width: "20%" }}
+                                    handleLike={handleLike}
+                                />
+                            ))}
+                        </Slider>
+                        {/* ) : (
               <>
                 <div className="d-flex justify-content-center">
                   {items?.map((ele, index) => (
@@ -107,10 +114,10 @@ const RecentlySoldItems = () => {
                 </div>
               </>
             )} */}
-            </CommonProductBLock>
-          </>
-        )}
-      </div>
+                    </CommonProductBLock>
+                </>
+            )}
+        </div>
     );
 };
 

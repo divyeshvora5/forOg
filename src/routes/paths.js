@@ -1,4 +1,4 @@
-import slugify from 'slugify';
+import slugify from "slugify";
 
 function subRoute(root, subRoute) {
     return `${root}${subRoute}`;
@@ -16,15 +16,15 @@ export const PATH_DASHBOARD = {
     explore: {
         nfts: subRoute(ROOT, "explore/nfts"),
         collectionRoot: subRoute(ROOT, "explore/collection"),
-        collection: (address) =>
-            subRoute(ROOT, `explore/collection/${address}`),
+        collection: (address, chain) =>
+            subRoute(ROOT, `explore/collection/${address}-${chain}`),
         auctions: subRoute(ROOT, "explore/auctions"),
     },
     stats: {
         ranking: subRoute(ROOT, "stats/ranking"),
         collectors: subRoute(ROOT, "stats/collectors"),
     },
-    rewards:{
+    rewards: {
         root: subRoute(ROOT, "rewards/"),
         leaderBoard: subRoute(ROOT, "rewards/leaderBoard"),
         achievements: subRoute(ROOT, "rewards/achievements"),
@@ -38,7 +38,7 @@ export const PATH_DASHBOARD = {
         listing: subRoute(ROOT, "item/listing"),
     },
     user: {
-        detail: (address) => subRoute(ROOT, `/${address}`),
+        detail: (address) => subRoute(ROOT, `/@${address}`),
     },
     blog: {
         root: subRoute(ROOT, "blog"),
@@ -66,6 +66,9 @@ export const PATH_DASHBOARD = {
         root: subRoute(ROOT, "chat"),
         user: (address) => subRoute(ROOT, `chat?recipient=${address}`),
     },
+    feed: {
+        root: subRoute(ROOT, "feed"),
+    },
 };
 
 export const DISABLE_CHAINS_SELECTION_ROUTE = {
@@ -83,9 +86,11 @@ export const DISABLE_CHAINS_SELECTION_ROUTE = {
     "/rewards": true, // rewards Page
     "/rewards/leaderBoard": true, // leaderBoard Page
     "/rewards/achievements": true, // achievements Page
+    "/feed": true, // Feed Page
 };
 
 export const SET_HEADER_CLASS = {
     "/explore/collection/[itemCollection]": true,
     "/[userAddress]": true,
+    "/profile": true,
 };

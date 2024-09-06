@@ -11,6 +11,7 @@ import { useRouter } from "next/router";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { shortenText } from "@/utils";
 import { EVENT_BUTTONS } from "./EventButtons";
+import ImageLoader from "../Common/ImageLoader";
 
 const UserActivityTab = ({
     ownerAddress,
@@ -47,6 +48,7 @@ const UserActivityTab = ({
             pathname: PATH_DASHBOARD.item.details,
             query: {
                 itemCollection: item?.itemCollection,
+                chainId: item?.chainId,
                 tokenId: item?.tokenId,
             },
         });
@@ -105,13 +107,25 @@ const UserActivityTab = ({
                                 className="profile-img-block pointer"
                                 onClick={() => itemRouteHandler(event)}
                             >
-                                <img
+                                <ImageLoader
+                                    src={
+                                        event?.itemImage
+                                    }
+                                    alt="item-img"
+                                    style={{
+                                        width: "60px",
+                                        height: "60px",
+                                        borderRadius: "10px",
+                                        objectFit: "cover",
+                                    }}
+                                />
+                                {/* <img
                                     src={
                                         event?.itemImage ||
                                         "../../images/item-img.png"
                                     }
                                     alt="item-img"
-                                ></img>
+                                ></img> */}
                                 <div className="text-img-block">
                                     <h3>{event?.itemName || ""}</h3>
                                     <p>
@@ -188,8 +202,6 @@ const UserActivityTab = ({
 };
 
 export default UserActivityTab;
-
-
 
 // chainId: "$chainId",
 // collectionName: "$collectionName",

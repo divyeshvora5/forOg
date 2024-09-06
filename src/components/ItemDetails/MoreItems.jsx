@@ -42,10 +42,11 @@ const MoreItems = () => {
     return (
         <div className="traning-nft-block">
             <div className="common-title-block desktop-view-title">
-                <h2>More from this collection</h2>
+                <h2>More From This Collection</h2>
                 <Link
                     href={PATH_DASHBOARD.explore.collection(
-                        items[0]?.itemCollection
+                        items[0]?.itemCollection,
+                        items[0]?.chainId
                     )}
                     className="group hover:translate-x-[-3px] transition-all ease-in"
                 >
@@ -92,8 +93,7 @@ const MoreItems = () => {
                                         <img
                                             src={
                                                 item?.collectionImage ||
-                                                item?.collectionLogo ||
-                                                "/images/collection-img.png"
+                                                item?.collectionLogo
                                             }
                                             alt=""
                                         ></img>
@@ -103,7 +103,7 @@ const MoreItems = () => {
 
                                 <div className="product-img-time product-img-time-big pointer">
                                     <ImageLoader
-                                        src={item?.image}
+                                        src={item?.animation_url || item?.image}
                                         alt=""
                                         thumbnail={item?.thumbnail}
                                     />
@@ -234,7 +234,8 @@ const MoreItems = () => {
                 <div className="common-title-block mobile-view-block">
                     <Link
                         href={PATH_DASHBOARD.explore.collection(
-                            items[0]?.collectionAddress
+                            items[0]?.collectionAddress,
+                            items[0]?.chainId
                         )}
                     >
                         <span>Explore</span>

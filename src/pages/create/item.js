@@ -313,13 +313,165 @@ const CreateItem = () => {
 											</label>
 										</div> */}
                         </div>
+                        <div className='upcoming-block'>
+                          <div className='upcoming-block-inner'>
+                            <div className='upcoming-block-inner-block'>
+                              <svg
+                                width='22'
+                                height='22'
+                                viewBox='0 0 22 22'
+                                fill='none'
+                                xmlns='http://www.w3.org/2000/svg'>
+                                <mask
+                                  id='path-1-outside-1_6096_22632'
+                                  maskUnits='userSpaceOnUse'
+                                  x='0'
+                                  y='-0.5'
+                                  width='16'
+                                  height='16'
+                                  fill='black'>
+                                  <rect fill='white' y='-0.5' width='16' height='16' />
+                                  <path d='M2 3.00267C2 2.17277 2.67277 1.5 3.50267 1.5H13.8307C14.6606 1.5 15.3333 2.17277 15.3333 3.00267V13.3307C15.3333 14.1606 14.6606 14.8333 13.8307 14.8333H3.50267C2.67277 14.8333 2 14.1606 2 13.3307V3.00267Z' />
+                                </mask>
+                                <path
+                                  d='M2 3.00267C2 2.17277 2.67277 1.5 3.50267 1.5H13.8307C14.6606 1.5 15.3333 2.17277 15.3333 3.00267V13.3307C15.3333 14.1606 14.6606 14.8333 13.8307 14.8333H3.50267C2.67277 14.8333 2 14.1606 2 13.3307V3.00267Z'
+                                  fill='#B9B8BB'
+                                />
+                                <path
+                                  d='M0.497325 3.00267C0.497325 1.34287 1.84287 -0.0026747 3.50267 -0.0026747H12.328C13.9878 -0.0026747 15.3333 1.34287 15.3333 3.00267C15.3333 3.00267 14.6606 3.00267 13.8307 3.00267H3.50267H0.497325ZM15.3333 14.8333H2H15.3333ZM3.50267 14.8333C1.84287 14.8333 0.497325 13.4878 0.497325 11.828V3.00267C0.497325 1.34287 1.84287 -0.0026747 3.50267 -0.0026747V3.00267V13.3307C3.50267 14.1606 3.50267 14.8333 3.50267 14.8333ZM15.3333 1.5V14.8333V1.5Z'
+                                  fill='white'
+                                  mask='url(#path-1-outside-1_6096_22632)'
+                                />
+                                <mask
+                                  id='path-3-outside-2_6096_22632'
+                                  maskUnits='userSpaceOnUse'
+                                  x='3.3335'
+                                  y='2.83325'
+                                  width='16'
+                                  height='16'
+                                  fill='black'>
+                                  <rect fill='white' x='3.3335' y='2.83325' width='16' height='16' />
+                                  <path d='M5.3335 6.33593C5.3335 5.50602 6.00627 4.83325 6.83617 4.83325H17.1642C17.9941 4.83325 18.6668 5.50602 18.6668 6.33593V16.6639C18.6668 17.4938 17.9941 18.1666 17.1642 18.1666H6.83617C6.00627 18.1666 5.3335 17.4938 5.3335 16.6639V6.33593Z' />
+                                </mask>
+                                <path
+                                  d='M5.3335 6.33593C5.3335 5.50602 6.00627 4.83325 6.83617 4.83325H17.1642C17.9941 4.83325 18.6668 5.50602 18.6668 6.33593V16.6639C18.6668 17.4938 17.9941 18.1666 17.1642 18.1666H6.83617C6.00627 18.1666 5.3335 17.4938 5.3335 16.6639V6.33593Z'
+                                  fill='#B9B8BB'
+                                />
+                                <path
+                                  d='M3.83082 6.33593C3.83082 4.67612 5.17636 3.33058 6.83617 3.33058H15.6615C17.3213 3.33058 18.6668 4.67612 18.6668 6.33593C18.6668 6.33593 17.9941 6.33593 17.1642 6.33593H6.83617H3.83082ZM18.6668 18.1666H5.3335H18.6668ZM6.83617 18.1666C5.17636 18.1666 3.83082 16.821 3.83082 15.1612V6.33593C3.83082 4.67612 5.17636 3.33058 6.83617 3.33058V6.33593V16.6639C6.83617 17.4938 6.83617 18.1666 6.83617 18.1666ZM18.6668 4.83325V18.1666V4.83325Z'
+                                  fill='white'
+                                  mask='url(#path-3-outside-2_6096_22632)'
+                                />
+                                <mask
+                                  id='path-5-outside-3_6096_22632'
+                                  maskUnits='userSpaceOnUse'
+                                  x='6.6665'
+                                  y='6.16675'
+                                  width='16'
+                                  height='16'
+                                  fill='black'>
+                                  <rect fill='white' x='6.6665' y='6.16675' width='16' height='16' />
+                                  <path d='M8.6665 9.66942C8.6665 8.83952 9.33927 8.16675 10.1692 8.16675H20.4972C21.3271 8.16675 21.9998 8.83952 21.9998 9.66942V19.9974C21.9998 20.8273 21.3271 21.5001 20.4972 21.5001H10.1692C9.33927 21.5001 8.6665 20.8273 8.6665 19.9974V9.66942Z' />
+                                </mask>
+                                <path
+                                  d='M8.6665 9.66942C8.6665 8.83952 9.33927 8.16675 10.1692 8.16675H20.4972C21.3271 8.16675 21.9998 8.83952 21.9998 9.66942V19.9974C21.9998 20.8273 21.3271 21.5001 20.4972 21.5001H10.1692C9.33927 21.5001 8.6665 20.8273 8.6665 19.9974V9.66942Z'
+                                  fill='#B9B8BB'
+                                />
+                                <path
+                                  d='M7.16383 9.66942C7.16383 8.00961 8.50937 6.66407 10.1692 6.66407H18.9945C20.6543 6.66407 21.9998 8.00961 21.9998 9.66942C21.9998 9.66942 21.3271 9.66942 20.4972 9.66942H10.1692H7.16383ZM21.9998 21.5001H8.6665H21.9998ZM10.1692 21.5001C8.50937 21.5001 7.16383 20.1545 7.16383 18.4947V9.66942C7.16383 8.00961 8.50937 6.66407 10.1692 6.66407V9.66942V19.9974C10.1692 20.8273 10.1692 21.5001 10.1692 21.5001ZM21.9998 8.16675V21.5001V8.16675Z'
+                                  fill='white'
+                                  mask='url(#path-5-outside-3_6096_22632)'
+                                />
+                              </svg>
+                              <p>Drop</p>
+                              <div className='coming-soon-block'>
+                                <p>Coming Soon</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className='upcoming-block-inner'>
+                            <div className='upcoming-block-inner-block'>
+                              <svg
+                                width='22'
+                                height='22'
+                                viewBox='0 0 22 22'
+                                fill='none'
+                                xmlns='http://www.w3.org/2000/svg'>
+                                <mask
+                                  id='path-1-outside-1_6096_22632'
+                                  maskUnits='userSpaceOnUse'
+                                  x='0'
+                                  y='-0.5'
+                                  width='16'
+                                  height='16'
+                                  fill='black'>
+                                  <rect fill='white' y='-0.5' width='16' height='16' />
+                                  <path d='M2 3.00267C2 2.17277 2.67277 1.5 3.50267 1.5H13.8307C14.6606 1.5 15.3333 2.17277 15.3333 3.00267V13.3307C15.3333 14.1606 14.6606 14.8333 13.8307 14.8333H3.50267C2.67277 14.8333 2 14.1606 2 13.3307V3.00267Z' />
+                                </mask>
+                                <path
+                                  d='M2 3.00267C2 2.17277 2.67277 1.5 3.50267 1.5H13.8307C14.6606 1.5 15.3333 2.17277 15.3333 3.00267V13.3307C15.3333 14.1606 14.6606 14.8333 13.8307 14.8333H3.50267C2.67277 14.8333 2 14.1606 2 13.3307V3.00267Z'
+                                  fill='#B9B8BB'
+                                />
+                                <path
+                                  d='M0.497325 3.00267C0.497325 1.34287 1.84287 -0.0026747 3.50267 -0.0026747H12.328C13.9878 -0.0026747 15.3333 1.34287 15.3333 3.00267C15.3333 3.00267 14.6606 3.00267 13.8307 3.00267H3.50267H0.497325ZM15.3333 14.8333H2H15.3333ZM3.50267 14.8333C1.84287 14.8333 0.497325 13.4878 0.497325 11.828V3.00267C0.497325 1.34287 1.84287 -0.0026747 3.50267 -0.0026747V3.00267V13.3307C3.50267 14.1606 3.50267 14.8333 3.50267 14.8333ZM15.3333 1.5V14.8333V1.5Z'
+                                  fill='white'
+                                  mask='url(#path-1-outside-1_6096_22632)'
+                                />
+                                <mask
+                                  id='path-3-outside-2_6096_22632'
+                                  maskUnits='userSpaceOnUse'
+                                  x='3.3335'
+                                  y='2.83325'
+                                  width='16'
+                                  height='16'
+                                  fill='black'>
+                                  <rect fill='white' x='3.3335' y='2.83325' width='16' height='16' />
+                                  <path d='M5.3335 6.33593C5.3335 5.50602 6.00627 4.83325 6.83617 4.83325H17.1642C17.9941 4.83325 18.6668 5.50602 18.6668 6.33593V16.6639C18.6668 17.4938 17.9941 18.1666 17.1642 18.1666H6.83617C6.00627 18.1666 5.3335 17.4938 5.3335 16.6639V6.33593Z' />
+                                </mask>
+                                <path
+                                  d='M5.3335 6.33593C5.3335 5.50602 6.00627 4.83325 6.83617 4.83325H17.1642C17.9941 4.83325 18.6668 5.50602 18.6668 6.33593V16.6639C18.6668 17.4938 17.9941 18.1666 17.1642 18.1666H6.83617C6.00627 18.1666 5.3335 17.4938 5.3335 16.6639V6.33593Z'
+                                  fill='#B9B8BB'
+                                />
+                                <path
+                                  d='M3.83082 6.33593C3.83082 4.67612 5.17636 3.33058 6.83617 3.33058H15.6615C17.3213 3.33058 18.6668 4.67612 18.6668 6.33593C18.6668 6.33593 17.9941 6.33593 17.1642 6.33593H6.83617H3.83082ZM18.6668 18.1666H5.3335H18.6668ZM6.83617 18.1666C5.17636 18.1666 3.83082 16.821 3.83082 15.1612V6.33593C3.83082 4.67612 5.17636 3.33058 6.83617 3.33058V6.33593V16.6639C6.83617 17.4938 6.83617 18.1666 6.83617 18.1666ZM18.6668 4.83325V18.1666V4.83325Z'
+                                  fill='white'
+                                  mask='url(#path-3-outside-2_6096_22632)'
+                                />
+                                <mask
+                                  id='path-5-outside-3_6096_22632'
+                                  maskUnits='userSpaceOnUse'
+                                  x='6.6665'
+                                  y='6.16675'
+                                  width='16'
+                                  height='16'
+                                  fill='black'>
+                                  <rect fill='white' x='6.6665' y='6.16675' width='16' height='16' />
+                                  <path d='M8.6665 9.66942C8.6665 8.83952 9.33927 8.16675 10.1692 8.16675H20.4972C21.3271 8.16675 21.9998 8.83952 21.9998 9.66942V19.9974C21.9998 20.8273 21.3271 21.5001 20.4972 21.5001H10.1692C9.33927 21.5001 8.6665 20.8273 8.6665 19.9974V9.66942Z' />
+                                </mask>
+                                <path
+                                  d='M8.6665 9.66942C8.6665 8.83952 9.33927 8.16675 10.1692 8.16675H20.4972C21.3271 8.16675 21.9998 8.83952 21.9998 9.66942V19.9974C21.9998 20.8273 21.3271 21.5001 20.4972 21.5001H10.1692C9.33927 21.5001 8.6665 20.8273 8.6665 19.9974V9.66942Z'
+                                  fill='#B9B8BB'
+                                />
+                                <path
+                                  d='M7.16383 9.66942C7.16383 8.00961 8.50937 6.66407 10.1692 6.66407H18.9945C20.6543 6.66407 21.9998 8.00961 21.9998 9.66942C21.9998 9.66942 21.3271 9.66942 20.4972 9.66942H10.1692H7.16383ZM21.9998 21.5001H8.6665H21.9998ZM10.1692 21.5001C8.50937 21.5001 7.16383 20.1545 7.16383 18.4947V9.66942C7.16383 8.00961 8.50937 6.66407 10.1692 6.66407V9.66942V19.9974C10.1692 20.8273 10.1692 21.5001 10.1692 21.5001ZM21.9998 8.16675V21.5001V8.16675Z'
+                                  fill='white'
+                                  mask='url(#path-5-outside-3_6096_22632)'
+                                />
+                              </svg>
+                              <p>Composable</p>
+                              <div className='coming-soon-block'>
+                                <p>Coming Soon</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                       <div className='tab-block-create'>
                         <Tabs selectedIndex={tabIndex} onSelect={(index) => setTabIndex(index)}>
                           <TabList>
                             <Tab>
                               <div className='tabs-block-link'>
-                                <h4>Upload an item</h4>
+                                <h4>Upload An Item</h4>
                               </div>
                             </Tab>
                             <Tab>
@@ -362,7 +514,7 @@ const CreateItem = () => {
                                   onChange={handleFileChange}
                                 />
                                 <div className='uploadfiletext'>
-                                  <i>
+                                  {/* <i>
                                     {formik.values.asset_type !== 'audio' && (mainFilePreview || thumbnail) ? (
                                       <MediaRenderer src={thumbnail || mainFilePreview} />
                                     ) : (
@@ -378,7 +530,7 @@ const CreateItem = () => {
                                         />
                                       </svg>
                                     )}
-                                  </i>
+                                  </i> */}
                                   <div className='uploadfile-detail'>
                                     <SubTitleText16>Drag your item to upload</SubTitleText16>
                                     <span>JPG, PNG, Or GIF. Maximum file size 100 Mb.</span>
@@ -430,8 +582,8 @@ const CreateItem = () => {
                                       </svg>
                                     </a>
                                     <Tooltip
-                                      anchorSelect="#prompt-tooltip"
-                                      content="The prompt to use for generating the image. Be as descriptive as possible for best results."
+                                      anchorSelect='#prompt-tooltip'
+                                      content='The prompt to use for generating the image. Be as descriptive as possible for best results.'
                                     />
                                   </div>
                                 </Label>
@@ -440,7 +592,7 @@ const CreateItem = () => {
                                   name='prompt'
                                   value={prompt}
                                   onChange={(e) => setPrompt(e.target.value)}
-                                  placeholder='A rainbow unicorn'
+                                  placeholder=''
                                 />
                               </FormGroup>
                             </div>
@@ -586,7 +738,10 @@ const CreateItem = () => {
                               </div>
                             )} */}
                             <div className='TXtype-btn-custom'>
-                              <Button type="button" disabled={imgLoading || contractLoading} onClick={genrateImage}> {imgLoading ? <Spinner animation="border" size="sm" /> : 'Generate'}</Button>
+                              <Button type='button' disabled={imgLoading || contractLoading} onClick={genrateImage}>
+                                {' '}
+                                {imgLoading ? <Spinner animation='border' size='sm' /> : 'Generate'}
+                              </Button>
                             </div>
                           </TabPanel>
                         </Tabs>
@@ -745,7 +900,7 @@ const CreateItem = () => {
                                   <div className='block-call-plus-add'>
                                     <span onClick={() => handleRemoveDynamicFields(index)}>
                                       <i>
-                                        <Image src='/images/minus-icon.svg' />
+                                        <Image src='/images/minus-icon-new.png' />
                                       </i>
                                     </span>
                                   </div>

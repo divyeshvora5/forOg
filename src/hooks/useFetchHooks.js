@@ -15,6 +15,7 @@ import {
     getEventsServices,
     getOwnerDetailsService,
     getPublicCollectionService,
+    getUserFeedService,
     getUsersCollectionsService,
 } from "@/redux/services/globalServices";
 import {
@@ -26,6 +27,7 @@ import {
     getCollectorsService,
     getPopularCollectionService,
     getRankingService,
+    getTopCollectorsFeedService,
 } from "@/redux/services/stateServices";
 import { useRouter } from "next/router";
 import { useEffect, useReducer, useState } from "react";
@@ -34,6 +36,8 @@ import { Toast } from "@/utils";
 import { useActiveWeb3React } from "./useActiveWeb3React";
 import {
     getAllAchievementsService,
+    getAllBonusTypesService,
+    getBuyPointCollectionsService,
     getLeaderBoardService,
     getUserAchievementsService,
     getUserRewardDataService,
@@ -43,6 +47,7 @@ import {
 const STATE = {
     PRICECHANGE: "PRICECHANGE",
     SEARCH: "SERACH",
+    SORT: "SORT",
     ACCOUNTCHANGE: "ACCOUNTCHANGE",
     SETCOLLECTION: "SETCOLLECTION",
     CATEGORYSELECT: "CATEGORYSELECT",
@@ -137,6 +142,12 @@ export const useAuction = () => {
                     state: null,
                     loading: true,
                 };
+            case STATE.STOPLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: false,
+                };
             case STATE.PRICECHANGE:
                 return {
                     ...state,
@@ -222,20 +233,27 @@ export const useAuction = () => {
             chainId,
         };
 
-        const { data } = await getAuctionServices(query);
+        try {
+            const { data } = await getAuctionServices(query);
 
-        dispatch({
-            type: STATE.STOREDATA,
-            payload: {
-                items: data.data,
-                count: data.count,
-                totalPages: data.totalPages,
-                minPrice: data.minPrice,
-                maxPrice: data.maxPrice,
-                priceArray: data.priceArray,
-                topAuction: data.topAuction,
-            },
-        });
+            dispatch({
+                type: STATE.STOREDATA,
+                payload: {
+                    items: data?.data,
+                    count: data?.count,
+                    totalPages: data?.totalPages,
+                    minPrice: data?.minPrice,
+                    maxPrice: data?.maxPrice,
+                    priceArray: data?.priceArray,
+                    topAuction: data?.topAuction,
+                },
+            });
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            dispatch({
+                type: STATE.STOPLOADING,
+            });
+        }
     };
 
     useEffect(() => {
@@ -439,6 +457,12 @@ export const useCollection = ({
                         standard: payload,
                     },
                 };
+            case STATE.STOPLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: false,
+                };
             case STATE.STOREDATA:
                 return {
                     ...state,
@@ -478,16 +502,23 @@ export const useCollection = ({
             type: STATE.STARTLOADING,
         });
 
-        const { data } = await getAllCollectionService(query);
+        try {
+            const { data } = await getAllCollectionService(query);
 
-        dispatch({
-            type: STATE.STOREDATA,
-            payload: {
-                items: data.data || [],
-                count: data.count,
-                totalPages: data.totalPages,
-            },
-        });
+            dispatch({
+                type: STATE.STOREDATA,
+                payload: {
+                    items: data?.data || [],
+                    count: data?.count || 0,
+                    totalPages: data?.totalPages || 0,
+                },
+            });
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            dispatch({
+                type: STATE.STOPLOADING,
+            });
+        }
     };
 
     useEffect(() => {
@@ -693,7 +724,8 @@ export const useItems = () => {
                     page: 1,
                     payload: {
                         ...state.payload,
-                        itemCollection: payload,
+                        itemCollection: payload.ItemCollection,
+                        chainId: payload.ChainId || chainId,
                     },
                 };
             case STATE.TYPECHANGE:
@@ -752,7 +784,6 @@ export const useItems = () => {
                 page: state.page,
                 limit: state.limit,
                 account,
-                chainId,
             };
 
             const { data } = await getAllItemsServices(query);
@@ -860,10 +891,19 @@ export const useItems = () => {
         });
     };
 
-    const handleCollectionChange = (value) => {
+    const handleCollectionChange = (selectedCollection) => {
+        if (!selectedCollection) return;
+        const [ItemCollection, ChainId] = selectedCollection.split("-");
+
+        let collection = ItemCollection;
+        let Chain = ChainId;
+        if (state.payload.itemCollection == ItemCollection) {
+            collection = "";
+            Chain = null;
+        }
         dispatch({
             type: STATE.SETCOLLECTION,
-            payload: value,
+            payload: { ItemCollection: collection, ChainId: Chain },
         });
     };
 
@@ -937,6 +977,12 @@ export const useCollectionDetails = () => {
                     state: null,
                     loading: true,
                 };
+            case STATE.STOPLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: false,
+                };
             case STATE.QUERYCHANGE:
                 return {
                     ...state,
@@ -975,12 +1021,15 @@ export const useCollectionDetails = () => {
             dispatch({
                 type: STATE.STOREDATA,
                 payload: {
-                    priceArray: data.priceArray || [],
-                    collectionDetails: data.collectionDetails || {},
+                    priceArray: data?.priceArray || [],
+                    collectionDetails: data?.collectionDetails || {},
                 },
             });
         } catch (error) {
-            console.error("Error fetching data:", error);
+            console.error("Error fetching collectionDetails:", error);
+            dispatch({
+                type: STATE.STOPLOADING,
+            });
         }
     };
 
@@ -992,8 +1041,11 @@ export const useCollectionDetails = () => {
     }, [status, account, chainId]);
 
     useEffect(() => {
+        if (!router.isReady) return;
+        const [address, chain] = router.query.itemCollection.split("-");
         let payload = {
-            itemCollection: router.query.itemCollection,
+            itemCollection: address,
+            chainId: Number(chain),
         };
         dispatch({
             type: STATE.QUERYCHANGE,
@@ -1210,7 +1262,7 @@ export const useCollectionItems = ({
                 },
             });
 
-            console.log(' data.data',  data)
+            // console.log(' data.data',  data)
         } catch (error) {
             console.log("error:", error);
         } finally {
@@ -1229,8 +1281,12 @@ export const useCollectionItems = ({
 
     useEffect(() => {
         if (!router.isReady || !router.query.itemCollection) return;
+        const [address, chain] = router.query.itemCollection.split("-");
+        const chainId = router.query?.chainId || chain;
+
         let payload = {
-            itemCollection: router.query.itemCollection,
+            itemCollection: address,
+            chainId: chainId,
         };
         if (router.query?.tokenId) {
             payload = {
@@ -1258,7 +1314,11 @@ export const useCollectionItems = ({
     }, [state]);
 
     useEffect(() => {
-        if (selectedAttribute[0] == state.payload?.attributes[0]) return;
+        if (
+            selectedAttribute?.length == state.payload?.attributes.length &&
+            selectedAttribute[0] == state.payload?.attributes[0]
+        )
+            return;
         dispatch({
             type: STATE.ATTIBUTESELECT,
             payload: selectedAttribute,
@@ -1334,6 +1394,13 @@ export const useCollectors = () => {
                     state: STATE.PAGECHANGE,
                     page: payload,
                 };
+            case STATE.LIMITCHANGE:
+                return {
+                    ...state,
+                    state: STATE.LIMITCHANGE,
+                    page: 1,
+                    limit: payload.limit,
+                };
             case STATE.ACCOUNTCHANGE:
                 return {
                     ...state,
@@ -1350,6 +1417,12 @@ export const useCollectors = () => {
                     ...state,
                     state: null,
                     loading: true,
+                };
+            case STATE.STOPLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: false,
                 };
             case STATE.STOREDATA:
                 return {
@@ -1379,22 +1452,29 @@ export const useCollectors = () => {
             ...state.payload,
             page: state.page,
             limit: state.limit,
-            time: "Month", //Hour, Day, Week, Month
+            time: "Month", // Hour, Day, Week, Month
             account,
             chainId,
         };
 
-        const { data } = await getCollectorsService(query);
+        try {
+            const { data } = await getCollectorsService(query);
 
-        dispatch({
-            type: STATE.STOREDATA,
-            payload: {
-                items: data.data,
-                count: data.count,
-                totalPages: data.totalPages,
-                page: data.page,
-            },
-        });
+            dispatch({
+                type: STATE.STOREDATA,
+                payload: {
+                    items: data?.data,
+                    count: data?.count,
+                    totalPages: data?.totalPages,
+                    page: data?.page,
+                },
+            });
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            dispatch({
+                type: STATE.STOPLOADING,
+            });
+        }
     };
 
     useEffect(() => {
@@ -1415,8 +1495,19 @@ export const useCollectors = () => {
             payload: page,
         });
     };
+
+    const handleLimitChange = (limitValue) => {
+        dispatch({
+            type: STATE.LIMITCHANGE,
+            payload: {
+                limit: limitValue,
+            },
+        });
+    };
+
     return {
         ...state,
+        handleLimitChange,
         handlePageChange,
     };
 };
@@ -1474,6 +1565,12 @@ export const useRanking = () => {
                     state: null,
                     loading: true,
                 };
+            case STATE.STOPLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: false,
+                };
             case STATE.STOREDATA:
                 return {
                     ...state,
@@ -1504,17 +1601,24 @@ export const useRanking = () => {
             limit: state.limit,
         };
 
-        const { data } = await getRankingService(query);
+        try {
+            const { data } = await getRankingService(query);
 
-        dispatch({
-            type: STATE.STOREDATA,
-            payload: {
-                items: data.data,
-                count: data.count,
-                totalPages: data.totalPages,
-                page: data.page,
-            },
-        });
+            dispatch({
+                type: STATE.STOREDATA,
+                payload: {
+                    items: data?.data,
+                    count: data?.count,
+                    totalPages: data?.totalPages,
+                    page: data?.page,
+                },
+            });
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            dispatch({
+                type: STATE.STOPLOADING,
+            });
+        }
     };
 
     useEffect(() => {
@@ -1591,6 +1695,13 @@ export const usePopularCollection = () => {
                     state: STATE.PAGECHANGE,
                     page: payload,
                 };
+            case STATE.LIMITCHANGE:
+                return {
+                    ...state,
+                    state: STATE.LIMITCHANGE,
+                    page: 1,
+                    limit: payload.limit,
+                };
             case STATE.TYPECHANGE:
                 return {
                     ...state,
@@ -1628,6 +1739,12 @@ export const usePopularCollection = () => {
                     state: null,
                     loading: true,
                 };
+            case STATE.STOPLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: false,
+                };
             case STATE.STOREDATA:
                 return {
                     ...state,
@@ -1658,17 +1775,25 @@ export const usePopularCollection = () => {
             limit: state.limit,
             chainId: chainId,
         };
-        const { data } = await getPopularCollectionService(query);
 
-        dispatch({
-            type: STATE.STOREDATA,
-            payload: {
-                items: data.data,
-                count: data.count,
-                totalPages: data.totalPages,
-                page: data.page,
-            },
-        });
+        try {
+            const { data } = await getPopularCollectionService(query);
+
+            dispatch({
+                type: STATE.STOREDATA,
+                payload: {
+                    items: data?.data || [],
+                    count: data?.count || 0,
+                    totalPages: data?.totalPages || 0,
+                    page: data?.page,
+                },
+            });
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            dispatch({
+                type: STATE.STOPLOADING,
+            });
+        }
     };
 
     useEffect(() => {
@@ -1714,9 +1839,19 @@ export const usePopularCollection = () => {
         });
     };
 
+    const handleLimitChange = (limitValue) => {
+        dispatch({
+            type: STATE.LIMITCHANGE,
+            payload: {
+                limit: limitValue,
+            },
+        });
+    };
+
     return {
         ...state,
         TimePeriod,
+        handleLimitChange,
         timePeriodChange,
         handlePageChange,
         handleSearch,
@@ -1889,9 +2024,9 @@ export const useUserDetails = () => {
         });
     };
 
-    const handleRouteChange = (address) => {
-        if (!address) return;
-        router.push(PATH_DASHBOARD.explore.collection(address));
+    const handleRouteChange = (address, chain) => {
+        if (!address || !chain) return;
+        router.push(PATH_DASHBOARD.explore.collection(address, chain));
     };
 
     const handleFilterChange = (value) => {
@@ -1973,6 +2108,12 @@ export const useBlog = ({ limit = 9 }) => {
                     state: null,
                     loading: true,
                 };
+            case STATE.STOPLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: false,
+                };
             case STATE.STOREDATA:
                 return {
                     ...state,
@@ -2003,18 +2144,25 @@ export const useBlog = ({ limit = 9 }) => {
             type: STATE.STARTLOADING,
         });
 
-        const { data } = await getAllBlogsServices(query);
+        try {
+            const { data } = await getAllBlogsServices(query);
 
-        dispatch({
-            type: STATE.STOREDATA,
-            payload: {
-                items: data?.data || [],
-                count: data?.count,
-                totalPages: data?.totalPages,
-                priceArray: data?.priceArray || [],
-                collectionDetails: data?.collectionDetails || {},
-            },
-        });
+            dispatch({
+                type: STATE.STOREDATA,
+                payload: {
+                    items: data?.data || [],
+                    count: data?.count,
+                    totalPages: data?.totalPages,
+                    priceArray: data?.priceArray || [],
+                    collectionDetails: data?.collectionDetails || {},
+                },
+            });
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            dispatch({
+                type: STATE.STOPLOADING,
+            });
+        }
     };
 
     useEffect(() => {
@@ -2187,7 +2335,7 @@ export const useOwnerDetails = () => {
                         ...state.payload,
                         ownerAddress: isEthAddress ? payload : null,
                         domainName: isDomainName ? payload : null,
-                        name: isDomainName ? null : payload,
+                        name: !isEthAddress && !isDomainName ? payload : null,
                     },
                 };
             // return {
@@ -2267,10 +2415,15 @@ export const useOwnerDetails = () => {
 
     useEffect(() => {
         if (!router.isReady) return;
-        dispatch({
-            type: STATE.QUERYCHANGE,
-            payload: router.query.userAddress,
-        });
+        const userAddress = router.query.userAddress;
+        if (userAddress && userAddress.startsWith("@")) {
+            dispatch({
+                type: STATE.QUERYCHANGE,
+                payload: userAddress.substring(1),
+            });
+        } else {
+            router.replace("/404");
+        }
     }, [router.isReady, router.query]);
 
     useEffect(() => {
@@ -2544,7 +2697,8 @@ export const usePublicProfileItems = ({
                     page: 1,
                     payload: {
                         ...state.payload,
-                        itemCollection: payload,
+                        itemCollection: payload.ItemCollection,
+                        chainId: payload.ChainId || chainId,
                     },
                 };
             case STATE.TYPECHANGE:
@@ -2598,7 +2752,6 @@ export const usePublicProfileItems = ({
                 page: state.page,
                 limit: state.limit,
                 account,
-                chainId,
             };
 
             if (created) {
@@ -2692,9 +2845,10 @@ export const usePublicProfileItems = ({
 
     useEffect(() => {
         // if (!selectedCollection) return;
+        const [ItemCollection, ChainId] = selectedCollection.split("-");
         dispatch({
             type: STATE.SETCOLLECTION,
-            payload: selectedCollection,
+            payload: { ItemCollection, ChainId },
         });
     }, [selectedCollection]);
 
@@ -2765,6 +2919,7 @@ export const usePublicProfileOffers = ({
             chainId: chainId,
             UserOffer: "All",
             search: "",
+            chainId,
         },
     };
 
@@ -2831,7 +2986,8 @@ export const usePublicProfileOffers = ({
                     page: 1,
                     payload: {
                         ...state.payload,
-                        itemCollection: payload,
+                        itemCollection: payload.ItemCollection,
+                        chainId: payload.ChainId || chainId,
                     },
                 };
             case STATE.TYPECHANGE:
@@ -2885,7 +3041,6 @@ export const usePublicProfileOffers = ({
                 page: state.page,
                 limit: state.limit,
                 account,
-                chainId,
             };
 
             const { data } = await getUserOfferServices(query);
@@ -2944,10 +3099,10 @@ export const usePublicProfileOffers = ({
     }, [ContextSearch]);
 
     useEffect(() => {
-        let itemCollection = selectedCollection;
+        const [ItemCollection, ChainId] = selectedCollection.split("-");
         dispatch({
             type: STATE.SETCOLLECTION,
-            payload: itemCollection,
+            payload: { ItemCollection, ChainId },
         });
     }, [selectedCollection]);
 
@@ -2998,6 +3153,7 @@ export const usePublicProfileActivities = ({
             search: "",
             account: ownerAddress,
             eventNames: publicProfileEvents,
+            chainId,
         },
     };
 
@@ -3087,7 +3243,8 @@ export const usePublicProfileActivities = ({
                     page: 1,
                     payload: {
                         ...state.payload,
-                        itemCollection: payload,
+                        itemCollection: payload.ItemCollection,
+                        chainId: payload.ChainId || chainId,
                     },
                 };
             case STATE.TYPECHANGE:
@@ -3139,7 +3296,6 @@ export const usePublicProfileActivities = ({
                 ...state.payload,
                 page: state.page,
                 limit: state.limit,
-                chainId,
             };
 
             const { data } = await getEventsServices(query);
@@ -3199,9 +3355,10 @@ export const usePublicProfileActivities = ({
 
     useEffect(() => {
         // if (!selectedCollection) return;
+        const [ItemCollection, ChainId] = selectedCollection.split("-");
         dispatch({
             type: STATE.SETCOLLECTION,
-            payload: selectedCollection,
+            payload: { ItemCollection, ChainId },
         });
     }, [selectedCollection]);
 
@@ -4239,12 +4396,13 @@ export const useRewardLeaderBoard = () => {
         limit: 50,
         payload: {
             account,
+            sortBy: "point",
+            sortOrder: "desc",
         },
     };
     const reducer = (state, { type, payload }) => {
         switch (type) {
             case STATE.ACCOUNTCHANGE:
-                console.log("calledaction");
                 return {
                     ...state,
                     state: STATE.ACCOUNTCHANGE,
@@ -4274,6 +4432,17 @@ export const useRewardLeaderBoard = () => {
                     payload: {
                         ...state.payload,
                         search: payload,
+                    },
+                };
+            case STATE.SORT:
+                return {
+                    ...state,
+                    state: STATE.SORT,
+                    page: 1,
+                    payload: {
+                        ...state.payload,
+                        sortBy: payload.sortBy,
+                        sortOrder: payload.sortOrder,
                     },
                 };
             case STATE.STARTLOADING:
@@ -4368,12 +4537,30 @@ export const useRewardLeaderBoard = () => {
             payload: e.target.value,
         });
     };
+    const handleSort = (column) => {
+        let newSortBy = state.payload.sortBy;
+        let newSortOrder;
+        if (state.payload.sortBy === column) {
+            newSortOrder = state.payload.sortOrder === "asc" ? "desc" : "asc";
+        } else {
+            newSortBy = column;
+            newSortOrder = "asc";
+        }
+        dispatch({
+            type: STATE.SORT,
+            payload: {
+                sortBy: newSortBy,
+                sortOrder: newSortOrder,
+            },
+        });
+    };
 
     return {
         ...state,
         handlePageChange,
         handleLimitChange,
         handleSearch,
+        handleSort,
     };
 };
 
@@ -4584,6 +4771,424 @@ export const useAllAchievements = () => {
 
     return {
         ...state,
+        handlePageChange,
+    };
+};
+
+export const useAllBonusTypesData = () => {
+    const {
+        walletDetalis: { account, status },
+    } = useSelector(globalState);
+    const initialState = {
+        loading: false,
+        data: [],
+        state: null,
+        payload: {},
+    };
+    const reducer = (state, { type, payload }) => {
+        switch (type) {
+            case STATE.ACCOUNTCHANGE:
+                return {
+                    ...state,
+                    state: STATE.ACCOUNTCHANGE,
+                    payload: {
+                        ...state.payload,
+                        account,
+                    },
+                };
+            case STATE.STARTLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: true,
+                };
+            case STATE.STOPLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: false,
+                };
+
+            case STATE.STOREDATA:
+                return {
+                    ...state,
+                    state: null,
+                    data: payload.data,
+                    loading: false,
+                };
+            default:
+                return state;
+        }
+    };
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const getData = async () => {
+        try {
+            dispatch({
+                type: STATE.STARTLOADING,
+            });
+            let query = {
+                ...state.payload,
+            };
+            const { data } = await getAllBonusTypesService(query);
+            dispatch({
+                type: STATE.STOREDATA,
+                payload: {
+                    data: data?.data || [],
+                },
+            });
+        } catch (error) {
+            dispatch({
+                type: STATE.STOPLOADING,
+            });
+            console.log("error:", error);
+        }
+    };
+
+    useEffect(() => {
+        if (!state.state || !state.payload.account) return;
+        getData();
+    }, [state]);
+
+    useEffect(() => {
+        if (!account) return;
+        dispatch({
+            type: STATE.ACCOUNTCHANGE,
+        });
+    }, [account, status]);
+
+    return {
+        ...state,
+    };
+};
+
+export const useBuyPointCollections = () => {
+    const {
+        walletDetalis: { account, chainId, status },
+    } = useSelector(globalState);
+    const initialState = {
+        loading: false,
+        data: [],
+        state: null,
+        payload: {},
+    };
+    const reducer = (state, { type, payload }) => {
+        switch (type) {
+            case STATE.ACCOUNTCHANGE:
+                return {
+                    ...state,
+                    state: STATE.ACCOUNTCHANGE,
+                    payload: {
+                        ...state.payload,
+                        chainId,
+                    },
+                };
+            case STATE.STARTLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: true,
+                };
+            case STATE.STOPLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: false,
+                };
+
+            case STATE.STOREDATA:
+                return {
+                    ...state,
+                    state: null,
+                    data: payload.data,
+                    loading: false,
+                };
+            default:
+                return state;
+        }
+    };
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const getData = async () => {
+        try {
+            dispatch({
+                type: STATE.STARTLOADING,
+            });
+            let query = {
+                ...state.payload,
+            };
+            const { data } = await getBuyPointCollectionsService(query);
+            dispatch({
+                type: STATE.STOREDATA,
+                payload: {
+                    data: data?.data || [],
+                },
+            });
+        } catch (error) {
+            dispatch({
+                type: STATE.STOPLOADING,
+            });
+            console.log("error:", error);
+        }
+    };
+
+    useEffect(() => {
+        if (!state.state || !state.payload.chainId) return;
+        getData();
+    }, [state]);
+
+    useEffect(() => {
+        if (!chainId) return;
+        dispatch({
+            type: STATE.ACCOUNTCHANGE,
+        });
+    }, [chainId, status]);
+
+    return {
+        ...state,
+    };
+};
+
+// getUserFeedService
+
+export const useUserFeed = ({ selectedActivity }) => {
+    const {
+        walletDetalis: { account, chainId, status },
+    } = useSelector(globalState);
+
+    const collectionEvents = [
+        "Listed",
+        "Minted",
+        "Transfer",
+        "Purchase",
+        "Offer",
+        "Remove Listing",
+        "Bids Cancel",
+        "Following",
+        "Referral",
+    ];
+
+    const initialState = {
+        loading: true,
+        state: null,
+        data: [],
+        followedCollections: 0,
+        followedUsers: 0,
+        hasMore: false,
+        count: 0,
+        page: 1,
+        limit: 20,
+        payload: {
+            followedUserAddress: "",
+            eventNames: collectionEvents,
+            chainId: chainId,
+        },
+    };
+
+    const reducer = (state, { type, payload }) => {
+        switch (type) {
+            case STATE.ACCOUNTCHANGE:
+                return {
+                    ...state,
+                    state: STATE.ACCOUNTCHANGE,
+                    page: 1,
+                    payload: {
+                        ...state.payload,
+                        account: account,
+                        chainId: chainId,
+                    },
+                };
+            case STATE.PAGECHANGE:
+                return {
+                    ...state,
+                    state: STATE.PAGECHANGE,
+                    page: state.page + 1,
+                };
+            case STATE.EXTRAFILTER:
+                return {
+                    ...state,
+                    state: STATE.EXTRAFILTER,
+                    page: 1,
+                    payload: {
+                        ...state.payload,
+                        chainId: payload,
+                    },
+                };
+            case STATE.QUERYCHANGE:
+                return {
+                    ...state,
+                    state: STATE.QUERYCHANGE,
+                    page: 1,
+                    payload: {
+                        ...state.payload,
+                        followedUserAddress: payload,
+                    },
+                };
+
+            case STATE.TYPECHANGE:
+                return {
+                    ...state,
+                    state: STATE.TYPECHANGE,
+                    page: 1,
+                    payload: {
+                        ...state.payload,
+                        eventNames: [...payload],
+                    },
+                };
+            case STATE.STARTLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: true,
+                };
+            case STATE.STOPLOADING:
+                return {
+                    ...state,
+                    state: null,
+                    loading: false,
+                };
+            case STATE.STOREDATA:
+                return {
+                    ...state,
+                    state: null,
+                    loading: false,
+                    count: payload.count,
+                    data:
+                        state.page == 1
+                            ? payload.data
+                            : [...state.data, ...payload.data],
+                    hasMore: payload.hasMore,
+                    followedCollections:
+                        state.page == 1
+                            ? payload.followedCollections
+                            : state.followedCollections,
+                    followedUsers: payload.followedUsers,
+                };
+            default:
+                return state;
+        }
+    };
+
+    const [state, dispatch] = useReducer(reducer, initialState);
+
+    const getData = async () => {
+        try {
+            dispatch({ type: STATE.STARTLOADING });
+            let query = {
+                ...state.payload,
+                page: state.page,
+                limit: state.limit,
+            };
+            const { data } = await getUserFeedService(query);
+            dispatch({
+                type: STATE.STOREDATA,
+                payload: {
+                    data: data?.data || [],
+                    hasMore: !data?.isLast || false,
+                    count: data?.count || 0,
+                    followedCollections: data?.followedCollections || 0,
+                    followedUsers: data?.followedUsers || 0,
+                },
+            });
+        } catch (error) {
+            dispatch({ type: STATE.STOPLOADING });
+            console.log("error:", error);
+        }
+    };
+
+    useEffect(() => {
+        if (!state.state || !state.payload.account) return;
+        getData();
+    }, [state.state]);
+
+    useEffect(() => {
+        if (account) {
+            dispatch({ type: STATE.ACCOUNTCHANGE });
+        }
+    }, [account, chainId, status]);
+
+    useEffect(() => {
+        const eventNames =
+            selectedActivity.length > 0 ? selectedActivity : collectionEvents;
+        dispatch({
+            type: STATE.TYPECHANGE,
+            payload: eventNames,
+        });
+    }, [selectedActivity]);
+
+    const handlePageChange = () => {
+        dispatch({ type: STATE.PAGECHANGE });
+    };
+
+    const handleFollowedUserChange = (selectedAddress) => {
+        if (!selectedAddress) return;
+        let address =
+            state.payload.followedUserAddress != selectedAddress
+                ? selectedAddress
+                : "";
+        dispatch({ type: STATE.QUERYCHANGE, payload: address });
+    };
+
+    const handleChainIdChange = (chain) => {
+        dispatch({
+            type: STATE.EXTRAFILTER,
+            payload: chain,
+        });
+    };
+
+    return {
+        ...state,
+        handlePageChange,
+        handleChainIdChange,
+        handleFollowedUserChange,
+    };
+};
+
+export const useTopCollectorForFeed = () => {
+    const {
+        walletDetalis: { account, chainId },
+    } = useSelector(globalState);
+
+    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [topCollectors, setTopCollectors] = useState([]);
+    const [hasMore, setHasMore] = useState(false);
+
+    const getData = async (page = 1) => {
+        if (!account) return;
+        try {
+            setLoading(true);
+            const { data } = await getTopCollectorsFeedService({
+                account,
+                page,
+                limit: 6,
+                chainId: chainId,
+                time: "Month",
+            });
+
+            setTopCollectors(
+                page == 1 ? data?.data : [...topCollectors, ...data?.data]
+            );
+            setHasMore(data?.totalPages > page);
+        } catch (err) {
+            console.log("Collectors err : ", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        getData();
+    }, [chainId]);
+
+    const handlePageChange = () => {
+        setPage(page + 1);
+        getData(page + 1);
+    };
+
+    return {
+        loading,
+        topCollectors,
+        hasMore,
+        page,
         handlePageChange,
     };
 };

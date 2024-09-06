@@ -37,13 +37,7 @@ const HotPicksItemCards = ({ item, savedItem = false, handleLike }) => {
                     <div className="common-product-block-inner-width !rounded-[22px]">
                         <div className="top-block-product-new">
                             <div className="top-block-product-img-new">
-                                <img
-                                    src={
-                                        item?.collectionLogo ||
-                                        "/images/collection-img.png"
-                                    }
-                                    alt=""
-                                ></img>
+                                <img src={item?.collectionLogo} alt=""></img>
                             </div>
                             <h4>{item?.collectionName || ""}</h4>
                         </div>

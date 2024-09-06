@@ -8,7 +8,7 @@ import {
 import { GetNftListingService } from "@/redux/services/itemServices";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { Button } from "@/styles/pages/main.style";
-import { CountParser, usdFormatter } from "@/utils";
+import { CountParser, usdFormatter, usdParser } from "@/utils";
 import moment from "moment";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
@@ -162,10 +162,10 @@ const ListingList = ({ item, selectedtab }) => {
               listings?.map((listing) => (
                 <tr onClick={() => setCurrentItem(listing)} className='pointer' key={listing?.uniqueId}>
                   <td className='td-center'>
-                    {CountParser(listing?.price || 0, 4)} {listing?.symbol}
+                    {CountParser(listing?.price || 0, 2)} {listing?.symbol}
                   </td>
                   <td className='td-center'>
-                    {usdFormatter.format(listing?.usdPrice || 0)}
+                    {usdParser(listing?.usdPrice || 0, _, 4)}
                     {/* ${CountParser(listing?.usdPrice || 0, 4)} */}
                   </td>
                   <td className='td-center'>{listing?.quantity}</td>

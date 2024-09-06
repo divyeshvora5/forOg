@@ -61,17 +61,15 @@ const CollectionFilter = ({ handleSelect }) => {
                 {items?.map((collection) => (
                     <div
                         className="search-collection-block-inner pointer"
-                        onClick={() => handleSelect(collection?.address)}
+                        onClick={() =>
+                            handleSelect(
+                                `${collection?.address}-${collection?.chainId}`
+                            )
+                        }
                         key={collection?._id}
                     >
                         <div className="search-collection-block-left">
-                            <img
-                                src={
-                                    collection?.image ||
-                                    "../../images/check-icon-block.svg"
-                                }
-                                alt=""
-                            ></img>
+                            <img src={collection?.image} alt=""></img>
                             <div className="content-block">
                                 <h4>
                                     <span>{collection?.name}</span>
@@ -98,7 +96,9 @@ const CollectionFilter = ({ handleSelect }) => {
                         <div className="search-collection-block-right">
                             {collection?.tradingVolume ? (
                                 <h4>
-                                    {usdFormatter.format(collection?.tradingVolume || 0)}{" "}
+                                    {usdFormatter.format(
+                                        collection?.tradingVolume || 0
+                                    )}{" "}
                                     {collection?.symbol}
                                 </h4>
                             ) : (

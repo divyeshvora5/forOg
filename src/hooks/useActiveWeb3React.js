@@ -25,7 +25,8 @@ import {
 	useDisconnect,
 	useSwitchActiveWalletChain
 } from "thirdweb/react";
-import { ethers5Adapter } from 'thirdweb/adapters/ethers5'
+import { ethers6Adapter } from 'thirdweb/adapters/ethers6'
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { NATIVE_TOKEN_ADDRESS, toTokens } from "thirdweb";
 import { useBalance } from "./useBalance";
@@ -34,7 +35,7 @@ import { signMessage } from "thirdweb/utils";
 
 export function useActiveWeb3React() {
 
-	const [library, setLibrary] = useState()
+	const [signer, setSigner] = useState()
 
 
 	const { connect } = useConnect();
@@ -52,22 +53,44 @@ export function useActiveWeb3React() {
 	// const walletInstance = useWallet();
 	// const ens = useENS();
 
-	
+
 
 	const provider = useMemo(() => {
 		if (!chainId) return null;
-		return ethers5Adapter.provider.toEthers({
+		return ethers6Adapter.provider.toEthers({
 			client: client,
 			chain: chainId,
 		})
 	}, [client, chainId]);
 
-	
 
-	
+	useEffect(() => {
+
+		if (!client || !chainId || !wallet) return;
+
+		(() => {
+			try {
+				const ethersSigner = ethers6Adapter.signer.toEthers({
+					client: client,
+					chain: chainId,
+					account: wallet
+				});
+
+				setSigner(ethersSigner);
+			} catch (err) {
+				console.log('err', err)
+			}
+		})()
+
+	}, [client, chainId, wallet])
+
+
+
+
+
 
 	const { balance, rawValue } = useBalance({
-		chainId: chainId,
+		chainId: chainId?.id,
 		wallet: wallet,
 		address: tokenAddress || NATIVE_TOKEN_ADDRESS
 	})
@@ -87,7 +110,7 @@ export function useActiveWeb3React() {
 		return {
 			activate: connect,
 			deactivate: disconnect.bind(null, walletDetails),
-			signMessage: wallet?.signMessage,
+			signMessage: wallet?.signMessage.bind(wallet),
 			account: wallet?.address,
 			wallet: wallet,
 			chainId: chainId?.id,
@@ -100,6 +123,7 @@ export function useActiveWeb3React() {
 			switchNetwork,
 			sdk: '',
 			status: connectionStatus,
+			signer: signer,
 			walletName: WALLET_PREFERENCES[walletDetails?.id]?.name,
 			walletImage: WALLET_PREFERENCES[walletDetails?.id]?.icon,
 		};
@@ -115,6 +139,7 @@ export function useActiveWeb3React() {
 			active: false,
 			library: null,
 			error: null,
+			signer: null,
 			balance: null,
 			rawBalanceValue: null,
 			switchNetwork: () => { },

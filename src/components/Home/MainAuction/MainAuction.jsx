@@ -7,58 +7,84 @@ import { useEffect, useState } from "react";
 import BidModel from "@/components/ItemDetails/Model/BidModel";
 import { useActiveWeb3React } from "@/hooks/useActiveWeb3React";
 import { Toast, validateNetwork } from "@/utils";
+import { useHeroSliderItems } from "@/hooks/useHome";
 
-const settings = {
-  dots: true,
-  infinite: true,
-  speed: 500,
-  slidesToShow: 1,
-  slidesToScroll: 1,
-  autoplay: true,
-  autoplaySpeed: 5000,
-  prevArrow: "", // Hides the previous arrow
-  nextArrow: "", // Hides the next arrow
-  arrows: false,
-  dotsClass: "custom-slider-dots",
-};
+const MainAuction = ({ fetchAuctions }) => {
+    const { items, loading } = useHeroSliderItems();
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const settings = {
+        dots: true,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        autoplay: true,
+        autoplaySpeed: 5000,
+        prevArrow: "", // Hides the previous arrow
+        nextArrow: "", // Hides the next arrow
+        arrows: false,
+        dotsClass: "custom-slider-dots",
+        beforeChange: (index) => {
+            let nextIndex = index + 1 > items.length - 1 ? 0 : index + 1;
+            setCurrentIndex(nextIndex);
+        },
+    };
+    const { account, chainId } = useActiveWeb3React();
+    const [show, setShow] = useState(false);
+    const [currentItem, setCurrentItem] = useState();
 
-const MainAuction = ({ items, loading, fetchAuctions }) => {
-  const { account, chainId } = useActiveWeb3React();
-  const [show, setShow] = useState(false);
-  const [currentItem, setCurrentItem] = useState();
+    const handleClose = () => {
+        setShow(false);
+    };
 
-  const handleClose = () => {
-    setShow(false);
-  };
+    const handleOpen = (_item) => {
+        const validate = validateNetwork(account, chainId, _item?.chainId);
+        if (!validate.status) {
+            return Toast.error(validate.message);
+        }
+        setCurrentItem(_item);
+        setShow(true);
+    };
 
-  const handleOpen = (_item) => {
-    const validate = validateNetwork(account, chainId, _item?.chainId);
-    if (!validate.status) {
-      return Toast.error(validate.message);
-    }
-    setCurrentItem(_item);
-    setShow(true);
-  };
-
-  const handleOpenNewTab = () => {
-    const url =
-      "https://www.revolut.com/referral/?referral-code=simonnqr!FEB1-24-AR-H2";
-    window.open(url, "_blank");
-  };
-  return (
-    <>
-      <div className='home-slider-main-sub'>
-        <BidModel
-          show={show}
-          handleClose={handleClose}
-          item={currentItem}
-          refetchBids={false}
-          refetch={fetchAuctions}
-          auctionCreator={currentItem?.lister}
-        />
-        <div className='home-slider-main-sub-banner'>
-          <Container>
-            {/* <div
+    const handleOpenNewTab = () => {
+        const url =
+            "https://www.revolut.com/referral/?referral-code=simonnqr!FEB1-24-AR-H2";
+        window.open(url, "_blank");
+    };
+    return (
+        <>
+            <div className="home-slider-main-sub">
+                <BidModel
+                    show={show}
+                    handleClose={handleClose}
+                    item={currentItem}
+                    refetchBids={false}
+                    refetch={fetchAuctions}
+                    auctionCreator={currentItem?.lister}
+                />
+                {loading ? (
+                    <>
+                        <div className="d-flex justify-content-center mt-5">
+                            <Spinner animation="border" size="md" />
+                        </div>
+                    </>
+                ) : !items?.length > 0 ? (
+                    <>
+                        {/* <div className="d-flex justify-content-center">
+                                    No Live Auction Found!
+                                </div> */}
+                    </>
+                ) : (
+                    <div
+                        className={`home-slider-main-sub-banner ${
+                            items?.length > 0 &&
+                            items[currentIndex]?.chainId === 369
+                                ? "home-slider-main-sub-banner-second"
+                                : ""
+                        }`}
+                    >
+                        <Container>
+                            {/* <div
                         className="banking-revolt-section pointer"
                         onClick={handleOpenNewTab}
                     >
@@ -125,32 +151,26 @@ const MainAuction = ({ items, loading, fetchAuctions }) => {
                             </a>
                         </div>
                     </div> */}
-            <div className='home-slider-main !p-0 '>
-              {loading ? (
-                <>
-                  <div className='d-flex justify-content-center mt-5'>
-                    <Spinner animation='border' size='md' />
-                  </div>
-                </>
-              ) : !items?.length > 0 ? (
-                <>
-                  {/* <div className="d-flex justify-content-center">
-                                    No Live Auction Found!
-                                </div> */}
-                </>
-              ) : (
-                <Slider {...settings} className='!mt-[-3rem] pb-[3rem]'>
-                  {items?.map((item, index) => (
-                    <AuctionCard handleClick={handleOpen} key={index} item={item} />
-                  ))}
-                </Slider>
-              )}
+                            <div className="home-slider-main !p-0 ">
+                                <Slider
+                                    {...settings}
+                                    className="!mt-[-3rem] pb-[3rem]"
+                                >
+                                    {items?.map((item, index) => (
+                                        <AuctionCard
+                                            handleClick={handleOpen}
+                                            key={index}
+                                            item={item}
+                                        />
+                                    ))}
+                                </Slider>
+                            </div>
+                        </Container>
+                    </div>
+                )}
             </div>
-          </Container>
-        </div>
-      </div>
-    </>
-  );
+        </>
+    );
 };
 
 export default MainAuction;

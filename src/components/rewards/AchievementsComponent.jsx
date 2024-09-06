@@ -16,7 +16,7 @@ const AchievementsComponent = () => {
                     </div>
                 </>
             ) : (
-                <CommonPageBlockPad>
+                <CommonPageBlockPad className="dark-mode-body">
                     <div className="common-center-graphics-block">
                         <svg
                             width="385"
@@ -366,7 +366,12 @@ const AchievementsComponent = () => {
                                             <span>Total Achievements</span>
                                         </h3>
                                         <div className="reward-points-block">
-                                            <h4>{count || 0}</h4>
+                                            <h4>
+                                                {(data?.remaining?.length ||
+                                                    0) +
+                                                    (data?.achieved?.length ||
+                                                        0)}
+                                            </h4>
                                         </div>
                                     </div>
                                     <div className="reward-block-top-inner">
@@ -388,9 +393,8 @@ const AchievementsComponent = () => {
                                         <div className="reward-points-block reward-points-block-last">
                                             <h5 className="mt-top">
                                                 <span>
-                                                    {(count || 0) -
-                                                        (data?.achieved
-                                                            ?.length || 0)}
+                                                    {data?.remaining?.length ||
+                                                        0}
                                                 </span>
                                             </h5>
                                         </div>
@@ -410,8 +414,7 @@ const AchievementsComponent = () => {
                                                             >
                                                                 <img
                                                                     src={
-                                                                        item?.image ||
-                                                                        "../../images/achivement-icon.png"
+                                                                        item?.image
                                                                     }
                                                                     alt="achivement-img"
                                                                 ></img>
@@ -419,6 +422,12 @@ const AchievementsComponent = () => {
                                                                     {item?.name ||
                                                                         ""}
                                                                 </h3>
+                                                                <div className="hover-block-inner">
+                                                                    <p>
+                                                                        {item?.description ||
+                                                                            ""}
+                                                                    </p>
+                                                                </div>
                                                             </div>
                                                         )
                                                     )}
@@ -515,8 +524,7 @@ const AchievementsComponent = () => {
                                                             >
                                                                 <img
                                                                     src={
-                                                                        item?.image ||
-                                                                        "../../images/achivement-icon.png"
+                                                                        item?.image
                                                                     }
                                                                     alt="achivement-img"
                                                                 ></img>
@@ -524,6 +532,12 @@ const AchievementsComponent = () => {
                                                                     {item?.name ||
                                                                         ""}
                                                                 </h3>
+                                                                <div className="hover-block-inner">
+                                                                    <p>
+                                                                        {item?.description ||
+                                                                            ""}
+                                                                    </p>
+                                                                </div>
                                                             </div>
                                                         )
                                                     )}

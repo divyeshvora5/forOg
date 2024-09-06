@@ -8,7 +8,7 @@ import {
     RPC_URLS,
     MEMBERSHIP_CONTRACTS_ADDRESSES,
 } from "@/constant";
-import { BigNumber, Contract, ethers } from "ethers";
+import { Contract, ethers } from "ethers";
 import TesseractXSingleNFTABI from "@/abi/TesseractXSingleNFT.json";
 import TesseractXMultipleNFTABI from "@/abi/TesseractXMultipleNFT.json";
 import TOKENABI from "@/abi/Token.json";
@@ -20,6 +20,7 @@ import { allowance, decimals } from "thirdweb/extensions/erc20";
 import { getAllValidAuctions, getAllValidListings, getAllValidOffers, getWinningBid } from "thirdweb/extensions/marketplace"
 
 import MembershipAbi from '@/abi/Membership.json'
+import BigNumber from "bignumber.js";
 
 const increaseGasLimit = (estimatedGasLimit) => {
     return estimatedGasLimit.mul(130).div(100); // increase by 30%
@@ -28,7 +29,7 @@ const increaseGasLimit = (estimatedGasLimit) => {
 const DELAY_MS = 5000;
 
 export function parseToWei(amount, decimal) {
-    return ethers.utils.parseUnits(String(amount), decimal);
+    return ethers.parseUnits(String(amount), decimal);
 }
 
 export function getContractInfo({ name, chainId }) {
@@ -58,7 +59,7 @@ export function getReadContractObj({ name, chainId, provider }) {
     if (provider) {
         newProvider = provider;
     } else {
-        newProvider = new ethers.providers.JsonRpcProvider(
+        newProvider = new ethers.JsonRpcProvider(
             NetworkParams[chainId]?.rpcUrls[0]
         );
     }
@@ -444,7 +445,7 @@ export async function isTokenApproved({
         spender: toAddr,
     })
 
-    if (BigNumber.from(parseToWei(amount, decimal)).gt(value)) {
+    if (BigNumber(parseToWei(amount, decimal)).gt(value)) {
         return false;
     }
     return true;
@@ -581,7 +582,7 @@ export async function buyFromListing({
     if (!marketPlaceContract) return false;
     try {
         if (currency?.toLowerCase() === ZERO_TOKEN_ADDRESS) {
-            
+
 
             const transaction = prepareContractCall({
                 contract: marketPlaceContract,
@@ -668,17 +669,17 @@ export async function buyFromListing({
         }
     } catch (err) {
         if (err.reason) {
-           return Toast.error(err.reason);
+            return Toast.error(err.reason);
         }
 
         Toast.error(err.message);
-        console.log('first', Object.keys(err))
-        console.log('err.name', {
-            ...err
-        })
-        console.log('err.reason', err.reason)
-        console.log("err", err.message);
-        console.log('errfull', err)
+        // console.log('first', Object.keys(err))
+        // console.log('err.name', {
+        //     ...err
+        // })
+        // console.log('err.reason', err.reason)
+        // console.log("err", err.message);
+        console.log('err (buyFromListing) :', err)
         return false;
     }
 }
@@ -1096,20 +1097,20 @@ export async function getValidOffer({ offerId, chain }) {
 // read data from contract
 export async function getValidListingNft({ listingId, chain }) {
     try {
-        console.log("listingId", listingId);
+        // console.log("listingId", listingId);
         const marketPlaceContract = getContractObj({
             name: "Marketplace",
             chain: chain,
         });
 
         if (!marketPlaceContract) return null;
-        console.log("marketPlaceContract", marketPlaceContract);
+        // console.log("marketPlaceContract", marketPlaceContract);
         const result = await getAllValidListings({
             contract: marketPlaceContract,
             start: listingId,
             count: 1
         });
-        console.log("result", result);
+        // console.log("result", result);
         if (result?.length) {
             return {
                 currency: result[0]?.currencyContractAddress?.toLowerCase(),
@@ -1202,7 +1203,7 @@ export async function getPlatformFeeInfo({ chain }) {
             method: resolveMethod('getPlatformFeeInfo'),
             params: [],
         });
-        return result[1]
+        return result[1] ? result[1] / 100 : 0
     } catch (err) {
         console.log("err", err);
         return 0;
@@ -1275,7 +1276,7 @@ export async function getBalanceInfo({
 //import collection
 export async function isNFTAddress({ address, chainId }) {
 
-    const provider = new ethers.providers.JsonRpcProvider(RPC_URLS[chainId]);
+    const provider = new ethers.JsonRpcProvider(RPC_URLS[chainId]);
 
     const nftToken = new Contract(address, TesseractXSingleNFTABI, provider);
 
@@ -1347,7 +1348,7 @@ export async function importCollection({
                 return true;
             }
             return false;
-           
+
         } else {
             const transaction = prepareContractCall({
                 contract: importContract,
@@ -1369,7 +1370,7 @@ export async function importCollection({
                 return true;
             }
             return false;
-           
+
         }
     } catch (e) {
         console.log(e);
@@ -1386,7 +1387,7 @@ export function getMemberShipContract({ chain, period, type }) {
 
     const address = MEMBERSHIP_CONTRACTS_ADDRESSES[chain?.id] ? MEMBERSHIP_CONTRACTS_ADDRESSES[chain?.id][type][period] : null;
 
-    if(!address) return;
+    if (!address) return;
 
     const contract = getContract({
         client: client,
@@ -1407,9 +1408,9 @@ export async function subscribeMemberShip({ wallet, chain, period, type, value, 
     if (!memberShipContract) return false;
     try {
         const LocalValue =
-                    currency !== ZERO_TOKEN_ADDRESS
-                        ? 0
-                        : parseToWei(value, currencyDecimals);
+            currency !== ZERO_TOKEN_ADDRESS
+                ? 0
+                : parseToWei(value, currencyDecimals);
 
         const transaction = prepareContractCall({
             contract: memberShipContract,
@@ -1440,5 +1441,87 @@ export async function subscribeMemberShip({ wallet, chain, period, type, value, 
         }
         console.log("err", err);
         return false;
+    }
+}
+
+
+//set royalty
+export async function setRoyalty({ wallet, chain, collectionAddress, collectionType, royaltyBps }) {
+    try {
+
+        const contract = getContract({
+            client: client,
+            chain,
+            address: collectionAddress,
+            abi: collectionType === "single" ? TesseractXSingleNFTABI : TesseractXMultipleNFTABI
+        });
+        const transaction = prepareContractCall({
+            contract: contract,
+            method: resolveMethod('setDefaultRoyaltyInfo'),
+            params: [
+                wallet?.address,
+                Number(royaltyBps) * 100
+            ]
+        })
+
+        const transactionResult = await sendAndConfirmTransaction({
+            transaction: transaction,
+            account: wallet
+        })
+        console.log('transactionResult', transactionResult)
+        if (transactionResult.status === 'success') {
+            await delay(DELAY_MS);
+            return true;
+        }
+        return false;
+    } catch (err) {
+        console.log('err', err)
+    }
+}
+
+export async function getCollectionRoyaltiesFromRpc({
+    type,
+    address,
+    chainId
+}) {
+    try {
+
+        const abi = type === "single" ? TesseractXSingleNFTABI : TesseractXMultipleNFTABI
+        const provider = new ethers.JsonRpcProvider(RPC_URLS[chainId]);
+        const contract = new Contract(address, abi, provider);
+        const royalty = await contract.getDefaultRoyaltyInfo();
+
+        if (royalty) {
+            return Number(royalty[1]) / 100
+        }
+
+        return 0
+    } catch (err) {
+        console.log('err', err)
+        return 0;
+    }
+}
+
+
+
+export async function getRoyaltiInfoFromTokenFromRpc({
+    type,
+    address,
+    chainId,
+    tokenId
+}) {
+    try {
+        const abi = type === "single" ? TesseractXSingleNFTABI : TesseractXMultipleNFTABI
+        const provider = new ethers.JsonRpcProvider(RPC_URLS[chainId]);
+        const contract = new Contract(address, abi, provider);
+        const royalty = await contract.getRoyaltyInfoForToken(tokenId);
+        if (royalty) {
+            return Number(royalty[1]) / 100
+        }
+
+        return 0
+    } catch (err) {
+        console.log('err', err);
+        return 0;
     }
 }

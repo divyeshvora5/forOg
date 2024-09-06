@@ -32,9 +32,9 @@ const rankingPage = () => {
     } = useRanking();
 
     const router = useRouter();
-    const handleRoute = (address) => {
-        if (!address) return;
-        router.push(PATH_DASHBOARD.explore.collection(address));
+    const handleRoute = (address, chainId) => {
+        if (!address || !chainId) return;
+        router.push(PATH_DASHBOARD.explore.collection(address, chainId));
     };
 
     const TABLE_HEADINGS = [
@@ -125,14 +125,14 @@ const rankingPage = () => {
                           },
                           index
                         ) => (
-                          <tr key={index} className='pointer' onClick={() => handleRoute(address)}>
+                          <tr key={index} className='pointer' onClick={() => handleRoute(address, chainId)}>
                             <td>{(page - 1) * limit + index + 1}</td>
                             <td>
                               <div className='collection-name'>
                                 <div className='collection-profile'>
                                   <img
-                                    src={collectionImage || '../../images/collection-img.png'}
-                                    alt='product-img'></img>
+                                    src={collectionImage}
+                                    alt='img'></img>
                                   {/* <div className="verify-dots">
                                                                     <img
                                                                         src={

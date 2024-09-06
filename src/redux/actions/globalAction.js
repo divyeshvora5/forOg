@@ -10,10 +10,12 @@ import {
     addFCMkeys,
     addNotificationPreference,
     addNotificationEmail,
-    removeNotificationEmail
+    removeNotificationEmail,
+    deleteUserServices,
 } from "../services/globalServices";
 import {
     FollowService,
+    collectionBoostService,
     collectionLikeService,
     itemLikeService,
 } from "../services/itemServices";
@@ -22,6 +24,7 @@ import { Toast, fromWei, resizeFile } from "@/utils";
 import { AxiosError } from "axios";
 import { ethers } from "ethers";
 import { RPC_URLS } from "@/constant";
+import { setUserRedeemPoint } from "../reducer/globalSlice";
 
 export const getCategoryActions = createAsyncThunk(
     "global/getCategoryActions",
@@ -51,17 +54,22 @@ export const getBlogTagsActions = createAsyncThunk(
 export const getUserAction = createAsyncThunk(
     "global/getUserAction",
     async (payload, { rejectWithValue }) => {
-
         try {
             const { data } = await getUserService(
                 payload.account,
                 payload.params
             );
+
+            if (!data?.success) {
+                payload.deactivate();
+                return Toast.error(data?.message);
+            }
             return data?.data;
         } catch (err) {
-            if (err instanceof AxiosError) {
-                return Toast.error(err.message);
-            }
+            payload?.deactivate();
+            // if (err instanceof AxiosError) {
+            //     return Toast.error(err.response.data.message);
+            // }
             return Toast.error(err.message);
         }
     }
@@ -108,6 +116,49 @@ export const collectionLikeAction = createAsyncThunk(
     }
 );
 
+export const collectionVoteAction = createAsyncThunk(
+    "global/collectionVoteAction",
+    async ({ payload, signMessage }, { dispatch, rejectWithValue }) => {
+        let sign_toast_id;
+        sign_toast_id = toast.loading("Signing...");
+        try {
+            const signature = await signMessage({
+                message: `I want to boost collection with this information :${payload?.account?.toLowerCase()}:${
+                    payload?.id
+                }:${payload?.points}`,
+            });
+            toast.dismiss(sign_toast_id);
+            if (!signature) {
+                Toast.error("Signing failed!");
+                return;
+            }
+            const { data } = await collectionBoostService({
+                ...payload,
+                signature,
+            });
+
+            if (data?.success) {
+                Toast.success("Boost points added successfully");
+                dispatch(
+                    setUserRedeemPoint({
+                        points: payload?.points,
+                    })
+                );
+                return {
+                    id: payload?.id,
+                    boostPoints: data?.boostPoints,
+                };
+            }
+            return {};
+        } catch (err) {
+            Toast.error(err.response.data.message || "Something went wrong");
+            rejectWithValue(err.message);
+        } finally {
+            toast.dismiss(sign_toast_id);
+        }
+    }
+);
+
 export const followAction = createAsyncThunk(
     "global/followAction",
     async (payload, { rejectWithValue }) => {
@@ -118,7 +169,7 @@ export const followAction = createAsyncThunk(
                 return {
                     id: payload?.follower,
                     follow: data?.follow,
-                    followCount: data?.followCount
+                    followCount: data?.followCount,
                 };
                 // dispatch(getCollectionNftsAction(filter));
             }
@@ -145,7 +196,7 @@ export const getUserBalance = createAsyncThunk(
     "global/getUserBalance",
     async (payload, rejectWithValue) => {
         try {
-            const provider = new ethers.providers.JsonRpcProvider(
+            const provider = new ethers.JsonRpcProvider(
                 RPC_URLS[payload.chainId]
             );
             const balance = await provider.getBalance(payload.account);
@@ -172,16 +223,63 @@ export const getTokenRate = createAsyncThunk(
     }
 );
 
+export const deleteUserAction = createAsyncThunk(
+    "user/deleteUserAction",
+    async ({ payload, signMessage }, { rejectWithValue }) => {
+        let sign_toast_id;
+        let delete_toast_id;
+        sign_toast_id = toast.loading("Signing...");
+
+        try {
+            const signature = await signMessage({
+                message: `I want to delete my account with this information :${payload?.account?.toLowerCase()}`,
+            });
+            toast.dismiss(sign_toast_id);
+            if (!signature) {
+                Toast.error("Signing failed!");
+
+                return;
+            }
+            delete_toast_id = toast.loading("Deleting Account...");
+            const { data } = await deleteUserServices({
+                ...payload,
+                signature,
+            });
+            toast.dismiss(delete_toast_id);
+            if (data?.success) {
+                Toast.success("Account Deleted Successfully");
+                return data;
+            }
+            return {};
+        } catch (err) {
+            console.log("Account delete error : ", err);
+            if (err instanceof AxiosError) {
+                return Toast.error(
+                    err.response.data.message || "Something went wrong"
+                );
+            }
+            rejectWithValue(err?.message);
+            return Toast.error(err.message);
+        } finally {
+            toast.dismiss(sign_toast_id);
+            toast.dismiss(delete_toast_id);
+        }
+    }
+);
+
 export const updateUserAction = createAsyncThunk(
     "user/updateUserAction",
     async ({ payload, signMessage, fileRatio }, { dispatch, getState }) => {
         let sign_toast_id;
+        let update_toast_id;
         sign_toast_id = toast.loading("Signing...");
         try {
             const { global } = getState();
             const { userDetails, account } = global;
             const signature = await signMessage({
-                message: `I want to update my profile :${account?.toLowerCase()}:${userDetails?.nonce}`
+                message: `I want to update my profile :${account?.toLowerCase()}:${
+                    userDetails?.nonce
+                }`,
             });
             if (!signature) {
                 Toast.error("Signing failed!");
@@ -189,9 +287,11 @@ export const updateUserAction = createAsyncThunk(
                 return;
             }
             toast.dismiss(sign_toast_id);
+            update_toast_id = toast.loading("Updating...");
             const formData = new FormData();
             formData.append("address", account);
             formData.append("name", payload.name || "NoName");
+            formData.append("fullName", payload.fullName || "");
             formData.append("usePns", payload.usePns || "No");
             formData.append("useDomain", payload.useDomain || "");
             formData.append("bio", payload.bio || "");
@@ -203,7 +303,6 @@ export const updateUserAction = createAsyncThunk(
             formData.append("telegram", payload.telegram || "");
             // here we take signature
             formData.append("signature", signature);
-
 
             if (payload.profilePic && payload.profilePic instanceof File) {
                 const lowFile = await resizeFile(
@@ -243,6 +342,8 @@ export const updateUserAction = createAsyncThunk(
             console.log("formData", formData);
             const { data } = await updateUserService(formData);
             dispatch(getUserAction({ account }));
+            toast.dismiss(update_toast_id);
+            Toast.success("Profile Updated Successfully!");
             return data?.data;
         } catch (err) {
             if (err instanceof AxiosError) {
@@ -253,6 +354,7 @@ export const updateUserAction = createAsyncThunk(
             return Toast.error(err.message);
         } finally {
             toast.dismiss(sign_toast_id);
+            toast.dismiss(update_toast_id);
         }
     }
 );
@@ -266,7 +368,9 @@ export const addUserFCMkeys = createAsyncThunk(
             const { global } = getState();
             const { userDetails, account } = global;
             const signature = await signMessage({
-                message: `I want to update my profile :${account?.toLowerCase()}:${userDetails?.nonce}`
+                message: `I want to update my profile :${account?.toLowerCase()}:${
+                    userDetails?.nonce
+                }`,
             });
             if (!signature) {
                 Toast.error("Signing failed!");
@@ -277,11 +381,11 @@ export const addUserFCMkeys = createAsyncThunk(
             const data = {
                 address: account,
                 signature,
-                fcmToken
-            }
+                fcmToken,
+            };
             const res = await addFCMkeys(data);
             dispatch(getUserAction({ account }));
-            toast.success("Success!")
+            toast.success("Success!");
 
             return data?.data;
         } catch (err) {
@@ -306,7 +410,9 @@ export const updateNotificationPreference = createAsyncThunk(
             const { global } = getState();
             const { userDetails, account } = global;
             const signature = await signMessage({
-                message: `I want to update my profile :${account?.toLowerCase()}:${userDetails?.nonce}`
+                message: `I want to update my profile :${account?.toLowerCase()}:${
+                    userDetails?.nonce
+                }`,
             });
             if (!signature) {
                 Toast.error("Signing failed!");
@@ -318,13 +424,12 @@ export const updateNotificationPreference = createAsyncThunk(
                 address: account,
                 mainObj,
                 signature,
-                dataObj
-            }
-
+                dataObj,
+            };
 
             const res = await addNotificationPreference(data);
             dispatch(getUserAction({ account }));
-            toast.success("Success!")
+            Toast.success("Success!");
             return res.data;
         } catch (err) {
             if (err instanceof AxiosError) {
@@ -349,7 +454,9 @@ export const UpdateEmail = createAsyncThunk(
             const { global } = getState();
             const { userDetails, account } = global;
             const signature = await signMessage({
-                message: `I want to update my email :${account?.toLowerCase()}:${userDetails?.nonce}`
+                message: `I want to update my email :${account?.toLowerCase()}:${
+                    userDetails?.nonce
+                }`,
             });
             if (!signature) {
                 Toast.error("Signing failed!");
@@ -362,25 +469,22 @@ export const UpdateEmail = createAsyncThunk(
                 const dataObj = {
                     address: account,
                     signature,
-                }
+                };
                 const res = await removeNotificationEmail(dataObj);
                 dispatch(getUserAction({ account }));
-                toast.success("Success!")
+                toast.success("Success!");
                 return res?.data;
             } else {
                 const data = {
                     address: account,
                     email,
                     signature,
-
-                }
+                };
                 const res = await addNotificationEmail(data);
                 dispatch(getUserAction({ account }));
-                toast.success("Success!")
+                toast.success("Success!");
                 return res?.data;
             }
-
-
         } catch (err) {
             if (err instanceof AxiosError) {
                 return Toast.error(err.message);

@@ -11,9 +11,9 @@ import React from "react";
 import { Container, Spinner } from "react-bootstrap";
 import SingleBox from "@/components/Blogs/SingleBox";
 import Blogbox from "@/components/Blogs/Blogbox";
-const BlogRenderer = dynamic(import("@/components/Blogs/BlogRenderer"), {
-  ssr: false,
-});
+// const BlogRenderer = dynamic(import("@/components/Blogs/BlogRenderer"), {
+//   ssr: false,
+// });
 
 const BlogDetails = () => {
   const { loading, items, page, hasMore, handlePageChange } = useBlog({

@@ -37,6 +37,7 @@ module.exports = {
 		ALCHAMY_KEY: process.env.ALCHAMY_KEY,
 		WALLETCONNECT_PROJECT_ID: process.env.WALLETCONNECT_PROJECT_ID,
 		API_URL: process.env.API_URL,
+		SOCKET_URL: process.env.SOCKET_URL,
 		PINATA_API_KEY: process.env.PINATA_API_KEY,
 		PINATA_API_SECRAT: process.env.PINATA_API_SECRAT,
 		PINATA_JWT: process.env.PINATA_JWT,
@@ -47,7 +48,8 @@ module.exports = {
 		THIRD_WEB_SECRETKEY: process.env.THIRD_WEB_SECRETKEY,
 		DEFAULT_CHAIN_ID: process.env.DEFAULT_CHAIN_ID,
 		PUBLIC_VAPIDKEY: process.env.PUBLIC_VAPIDKEY,
-		FAL_KEY: process.env.FAL_KEY
+		FAL_KEY: process.env.FAL_KEY,
+		OPENSEA_API_KEY: process.env.OPENSEA_API_KEY
 	},
 	images: {
 		remotePatterns: [
@@ -66,6 +68,12 @@ module.exports = {
 			{
 				protocol: "https",
 				hostname: "https://cdn.onesignal.com",
+				port: "",
+				pathname: "/*/**",
+			},
+			{
+				protocol: "https",
+				hostname: "https://api.tesseractx.com",
 				port: "",
 				pathname: "/*/**",
 			},

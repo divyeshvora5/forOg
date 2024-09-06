@@ -2,11 +2,11 @@
   "background_color": "#ffffff",
   "dir": "ltr",
   "display": "standalone",
-  "name": "beta.tesseractx",
+  "name": "TesseractX",
   "orientation": "any",
-  "scope": "https://beta.tesseractx.com/",
-  "short_name": "beta.tesseractx",
-  "start_url": "https://beta.tesseractx.com/",
+  "scope": "https://tesseractx.com/",
+  "short_name": "TesseractX",
+  "start_url": "https://tesseractx.com/",
   "theme_color": "#ffffff",
   "icons": [
     {
@@ -16,8 +16,8 @@
     },
     {
       "src": "192.png",
-      "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "type": "image/png"
     },
     {
       "src": "512.png",
@@ -25,13 +25,26 @@
       "type": "image/png"
     }
   ],
-  "description": "TesseractX is the ultimate NFT marketplace on PulseChain, offering generous rewards. Buy, sell, and trade unique digital collectibles.",
+  "description": "TesseractX is the ultimate rewarding, multi-chain, community-centric digital collectibles marketplace",
   "id": "1",
+  "prefer_related_applications": false,
+  "iarc_rating_id": "12+",
+  "categories": [
+    "finance"
+  ],
   "shortcuts": [
     {
-      "name": "tesseractx",
-      "url": "https://beta.tesseractx.com/",
-      "description": "TesseractX is the ultimate NFT marketplace on PulseChain"
+      "name": "Home",
+      "url": "https://tesseractx.com/",
+      "description": "Home"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpg",
+      "platform": "wide"
     }
   ]
 }

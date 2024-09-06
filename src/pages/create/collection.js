@@ -109,42 +109,57 @@ const CreateCollection = () => {
                                                     {CHAIN_WITH_LOGO.map(
                                                         (chain) => (
                                                             <>
-                                                                {chain.chainId?.id !==
+                                                                {chain.chainId
+                                                                    ?.id !==
                                                                     "All" && (
-                                                                        <div className="radio-group-main-inner">
-                                                                            <Form.Check
-                                                                                type="radio"
-                                                                                checked={
-                                                                                    chainId ===
-                                                                                    chain.chainId?.id
+                                                                    <div className="radio-group-main-inner">
+                                                                        <Form.Check
+                                                                            type="radio"
+                                                                            checked={
+                                                                                chainId ===
+                                                                                chain
+                                                                                    .chainId
+                                                                                    ?.id
+                                                                            }
+                                                                            name="chain"
+                                                                            onClick={() => {
+                                                                                chainId !==
+                                                                                    chain
+                                                                                        .chainId
+                                                                                        .id &&
+                                                                                    switchNetwork(
+                                                                                        chain.chainId
+                                                                                    );
+                                                                            }}
+                                                                        />
+                                                                        <label for="radio">
+                                                                            <img
+                                                                                src={
+                                                                                    chain.logo
                                                                                 }
-                                                                                name="Chain"
-                                                                                onClick={() => {
-                                                                                    chainId !==
-                                                                                        chain.chainId.id &&
-                                                                                        switchNetwork(
-                                                                                            chain.chainId
-                                                                                        );
-                                                                                }}
-                                                                            />
-                                                                            <label for="radio">
-                                                                                <img
-                                                                                    src={
-                                                                                        chain.logo
-                                                                                    }
-                                                                                    alt="icon"
-                                                                                ></img>
-                                                                                <p>
-                                                                                    {
-                                                                                        chain.name
-                                                                                    }
-                                                                                </p>
-                                                                            </label>
-                                                                        </div>
-                                                                    )}
+                                                                                alt="icon"
+                                                                            ></img>
+                                                                            <p>
+                                                                                {
+                                                                                    chain.name
+                                                                                }
+                                                                            </p>
+                                                                        </label>
+                                                                    </div>
+                                                                )}
                                                             </>
                                                         )
                                                     )}
+                                                    {(formik.touched.chain ||
+                                                        formik.submitCount) &&
+                                                    formik.errors.chain ? (
+                                                        <div className="text-danger">
+                                                            {
+                                                                formik.errors
+                                                                    .chain
+                                                            }
+                                                        </div>
+                                                    ) : null}
                                                     {/* <div className="radio-group-main-inner">
                                                         <Form.Check type="radio" />
                                                         <label for="radio">
@@ -359,15 +374,24 @@ const CreateCollection = () => {
                                                         </div>
                                                     </div>
                                                 </UploadFillDivWrapper>
+                                                {(formik.touched
+                                                    .collectionFile ||
+                                                    formik.submitCount) &&
+                                                formik.errors.collectionFile ? (
+                                                    <div className="text-danger">
+                                                        {
+                                                            formik.errors
+                                                                .collectionFile
+                                                        }
+                                                    </div>
+                                                ) : null}
                                             </div>
 
                                             <div className="TXtype-details-wrapper TXtype-details-wrapper-input">
                                                 <Row>
                                                     <Col md={12}>
                                                         <FormGroup>
-                                                            <Label>
-                                                                Name
-                                                            </Label>
+                                                            <Label>Name</Label>
                                                             <Input
                                                                 type="type"
                                                                 placeholder=""
@@ -384,6 +408,19 @@ const CreateCollection = () => {
                                                                         .name
                                                                 }
                                                             />
+                                                            {(formik.touched
+                                                                .name ||
+                                                                formik.submitCount) &&
+                                                            formik.errors
+                                                                .name ? (
+                                                                <div className="text-danger">
+                                                                    {
+                                                                        formik
+                                                                            .errors
+                                                                            .name
+                                                                    }
+                                                                </div>
+                                                            ) : null}
                                                         </FormGroup>
                                                     </Col>
                                                     <Col md={12}>
@@ -407,9 +444,21 @@ const CreateCollection = () => {
                                                                         .symbol
                                                                 }
                                                             />
+                                                            {(formik.touched
+                                                                .symbol ||
+                                                                formik.submitCount) &&
+                                                            formik.errors
+                                                                .symbol ? (
+                                                                <div className="text-danger">
+                                                                    {
+                                                                        formik
+                                                                            .errors
+                                                                            .symbol
+                                                                    }
+                                                                </div>
+                                                            ) : null}
                                                         </FormGroup>
                                                     </Col>
-
 
                                                     <Col md={12}>
                                                         <FormGroup>
@@ -444,7 +493,8 @@ const CreateCollection = () => {
                                                             >
                                                                 <FormGroup>
                                                                     <Label>
-                                                                        Royalties %
+                                                                        Royalties
+                                                                        %
                                                                     </Label>
                                                                     <Input
                                                                         type="type"
@@ -462,6 +512,21 @@ const CreateCollection = () => {
                                                                                 .royaltyBps
                                                                         }
                                                                     />
+                                                                    {(formik
+                                                                        .touched
+                                                                        .royaltyBps ||
+                                                                        formik.submitCount) &&
+                                                                    formik
+                                                                        .errors
+                                                                        .royaltyBps ? (
+                                                                        <div className="text-danger">
+                                                                            {
+                                                                                formik
+                                                                                    .errors
+                                                                                    .royaltyBps
+                                                                            }
+                                                                        </div>
+                                                                    ) : null}
                                                                 </FormGroup>
                                                             </Col>
                                                             <Col
@@ -480,10 +545,45 @@ const CreateCollection = () => {
                                                                         }
                                                                         className="TX-select2-wrapper"
                                                                         classNamePrefix="TX-fix-select"
-                                                                        onChange={
-                                                                            handleChangeCategory
+                                                                        onChange={(
+                                                                            selectedOption
+                                                                        ) => {
+                                                                            formik.setFieldValue(
+                                                                                "category",
+                                                                                selectedOption.value
+                                                                            );
+                                                                        }}
+                                                                        onBlur={
+                                                                            formik.handleBlur
+                                                                        }
+                                                                        value={
+                                                                            categorys.find(
+                                                                                (
+                                                                                    option
+                                                                                ) =>
+                                                                                    option.value ===
+                                                                                    formik
+                                                                                        .values
+                                                                                        .category
+                                                                            ) ||
+                                                                            ""
                                                                         }
                                                                     />
+                                                                    {(formik
+                                                                        .touched
+                                                                        .category ||
+                                                                        formik.submitCount) &&
+                                                                    formik
+                                                                        .errors
+                                                                        .category ? (
+                                                                        <div className="text-danger">
+                                                                            {
+                                                                                formik
+                                                                                    .errors
+                                                                                    .category
+                                                                            }
+                                                                        </div>
+                                                                    ) : null}
                                                                 </FormGroup>
                                                             </Col>
                                                         </Row>

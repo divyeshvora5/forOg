@@ -198,8 +198,7 @@ const OfferModel = ({ show, handleClose }) => {
                                 <ImageLoader
                                     src={
                                         itemDetails?.image ||
-                                        itemDetails?.thumbnail ||
-                                        "/images/ethe-icon-blue.svg"
+                                        itemDetails?.thumbnail
                                     }
                                     thumbnail={itemDetails?.thumbnail}
                                 />
