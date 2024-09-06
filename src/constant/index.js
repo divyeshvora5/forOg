@@ -413,6 +413,7 @@ export const FAL_IMAGES_DIMENTIONS = [
 // export const FRONT_END_DOMAIN = "https://dev.tesseractx.com";
 export const FRONT_END_DOMAIN = "https://for-og-zeta.vercel.app";
 
+
 // export const FRONT_END_DOMAIN = "http://127.0.0.1:3000"
 
 export const coinbase = createWallet("com.coinbase.wallet");
